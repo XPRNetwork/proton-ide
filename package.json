@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "NODE_OPTIONS=–-max_old_space_size=16384 npx vue-cli-service serve",
+    "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
@@ -12,6 +12,7 @@
     "as-chain": "^0.0.16",
     "assemblyscript": "^0.20.3",
     "core-js": "^3.8.3",
+    "eosio-asc": "^0.2.50",
     "handlebars": "^4.7.7",
     "monaco-editor": "^0.20.0",
     "ts-dedent": "^2.2.0",
@@ -43,6 +44,7 @@
   "resolutions": {
     "monaco-editor": "0.20.0",
     "monaco-editor-webpack-plugin": "1.9.1",
-    "vue-monaco/monaco-editor": "0.20.0"
+    "vue-monaco/monaco-editor": "0.20.0",
+    "eosio-asc/assemblyscript": "^0.20.3"
   }
 }

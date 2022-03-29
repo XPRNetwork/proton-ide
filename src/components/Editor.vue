@@ -1,42 +1,46 @@
 <template>
-<div>
-  <div id="header">
-    <h1>AssemblyScript Editor</h1>
-    <p><a href="introduction.html" target="_blank" rel="noopener">Language documentation</a></p>
-  </div>
-  <div v-if="loading" id="loading">
-
-  </div>
-  <div id="buttons">
-    <a class="button share" title="Copy shareable Link">🔗</a>
-    <a class="button options" title="Compiler Options">⚙️</a>
-  </div>
-
-  <div id="clipboard" class="popup">
-    Shareable link copied to clipboard.
-  </div>
-
-  <div id="tabs">
-    <a id="sourceTab" class="tab source active" title="AssemblyScript source code">module.ts</a>
-    <a id="binaryTab" class="tab binary" title="Click to Compile">module.wat</a>
-    <a id="htmlTab" class="tab html" title="JavaScript host code">index.html</a>
-    <a id="playTab" class="tab play" title="Click to Compile & Run">Run</a>
-  </div>
-
-  <div id="panes">
-    <div id="source" class="pane source active" aria-labelledby="sourceTab"></div>
-    <div id="binary" class="pane binary" aria-labelledby="binaryTab"></div>
-    <div id="html" class="pane html" aria-labelledby="htmlTab"></div>
-    <div id="play" class="pane play" aria-labelledby="htmlTab">
-      <iframe
-        id="play-frame"
-        title="Play frame"
-        src="data:text/html;base64,"
-        sandbox="allow-scripts allow-pointer-lock"
-        ref="playFrame"
-      ></iframe>
+  <div>
+    <div id="header">
+      <h1>AssemblyScript Editor</h1>
+      <p><a href="introduction.html" target="_blank" rel="noopener">Language documentation</a></p>
     </div>
-  </div>
+    <div v-if="loading" id="loading">
+
+    </div>
+
+    <div id="buttons">
+      <a class="button share" title="Copy shareable Link">🔗</a>
+      <a class="button options" title="Compiler Options">⚙️</a>
+    </div>
+
+    <div id="clipboard" class="popup">
+      Shareable link copied to clipboard.
+    </div>
+
+    <div id="tabs">
+      <a id="sourceTab" class="tab source active" title="AssemblyScript source code">module.ts</a>
+      <a id="binaryTab" class="tab binary" title="Click to Compile">module.wat</a>
+      <a id="abiTab" class="tab abi" title="ABI">contract.abi</a>
+      <a id="htmlTab" class="tab html" title="JavaScript host code">index.html</a>
+      <a id="playTab" class="tab play" title="Click to Compile & Run">Run</a>
+    </div>
+
+    <div id="panes">
+      <div id="source" class="pane source active" aria-labelledby="sourceTab"></div>
+      <div id="binary" class="pane binary" aria-labelledby="binaryTab"></div>
+      <div id="abi" class="pane abi" aria-labelledby="abiTab"></div>
+      <div id="html" class="pane html" aria-labelledby="htmlTab"></div>
+      <div id="play" class="pane play" aria-labelledby="htmlTab">
+        <iframe
+          id="play-frame"
+          title="Play frame"
+          src="data:text/html;base64,"
+          sandbox="allow-scripts allow-pointer-lock"
+          ref="playFrame"
+        ></iframe>
+      </div>
+    </div>
+
     <input type="text" id="clipboardHelper" aria-hidden="true" />
 
     <MonacoEditor
@@ -106,6 +110,7 @@ const MONACO_EDITOR_FONT = 'JetBrains Mono'
 
 let sourceEditor = undefined as any
 let binaryEditor = undefined as any
+let abiEditor = undefined as any
 
 export default defineComponent({
   name: 'editor-view',
@@ -167,14 +172,26 @@ export default defineComponent({
       // Add AssemblyScript Standard Library definition
       monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
         target: monaco.languages.typescript.ScriptTarget.ES2015,
+        allowNonTsExtensions: true,
+        moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+        module: monaco.languages.typescript.ModuleKind.CommonJS,
+        // noEmit: true,
         experimentalDecorators: true,
-        allowNonTsExtensions: true
       });
 
-      monaco.languages.typescript.typescriptDefaults.addExtraLib(
-        asc.definitionFiles.assembly,
-        "assemblyscript/std/assembly/index.d.ts"
+      monaco.languages.typescript.typescriptDefaults.addExtraLib(asc.definitionFiles.assembly, "assemblyscript/std/assembly/index.d.ts")
+      monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, "as-chain/index.d.ts")
+
+      monaco.editor.createModel(
+          asChainIndex,
+          'typescript',
+          monaco.Uri.parse(`as-chain/index.d.ts`)
       )
+      // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'file://node_modules/as-chain/index.ts');
+      // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'file://node_modules/as-chain.ts');
+      // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'file://node_modules/as-chain');
+      // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'file://as-chain/index.ts');
+      // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'as-chain.ts');
 
       // Waiting for EDITOR_FONT to load before set it in editor
       // await document.fonts.load(`2em ${MONACO_EDITOR_FONT}`)
@@ -234,21 +251,29 @@ export default defineComponent({
       const sourcePane = document.getElementById('source')
       const binaryPane = document.getElementById('binary')
       const htmlPane = document.getElementById('html')
+      const abiPane = document.getElementById('abi')
 
       // Create editor panes
       const sourceModel = monaco.editor.createModel(source, 'typescript')
       sourceEditor = monaco.editor.create(sourcePane, Object.assign({}, commonEditorOptions, {
         model: sourceModel,
       }))
+
       const binaryModel = monaco.editor.createModel('(module\n 🚀\n)\n', 'wat')
       binaryModel.updateOptions({ tabSize: 1 })
       binaryEditor = monaco.editor.create(binaryPane, Object.assign({}, commonEditorOptions, {
         model: binaryModel,
         readOnly: true
       }))
+
       const htmlModel = monaco.editor.createModel(html, 'html')
       const htmlEditor = monaco.editor.create(htmlPane, Object.assign({}, commonEditorOptions, {
         model: htmlModel
+      }))
+
+      const abiModel = monaco.editor.createModel('', 'html')
+      abiEditor = monaco.editor.create(abiPane, Object.assign({}, commonEditorOptions, {
+        model: abiModel
       }))
 
       // Make tabs switchable
@@ -355,7 +380,7 @@ export default defineComponent({
         },
         writeFile: (name: string, contents: string) => { outputs[name] = contents },
         listFiles: () => [],
-        transforms: [new ContractTransform()]
+        transforms: [new ContractTransform(abiEditor)]
       })
       
       let output = stdout.toString().trim()

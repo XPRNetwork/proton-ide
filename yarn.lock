@@ -2039,7 +2039,7 @@
   "resolved" "https://registry.npmjs.org/as-bignum/-/as-bignum-0.2.18.tgz"
   "version" "0.2.18"
 
-"as-chain@^0.0.16":
+"as-chain@^0.0.16", "as-chain@0.0.16":
   "integrity" "sha512-oOxyX2LYua2suC/rEBfuoVw6rEIfuGnhRFROTSoksXbV6md0+J64tHYhEjADuemqISOqFe8qvj9Sxw3lPxjejA=="
   "resolved" "https://registry.npmjs.org/as-chain/-/as-chain-0.0.16.tgz"
   "version" "0.0.16"
@@ -3077,6 +3077,16 @@
   "resolved" "https://registry.npmjs.org/entities/-/entities-2.2.0.tgz"
   "version" "2.2.0"
 
+"eosio-asc@^0.2.50":
+  "integrity" "sha512-Ehk2wQ0kU8BB/VIcw1wI4OwDs2sbiRgBc9BvgGyx3y1pMIihf3poZvl3mrMBFGLeowYTzEPBUxN8X6fRwsSgGw=="
+  "resolved" "https://registry.npmjs.org/eosio-asc/-/eosio-asc-0.2.50.tgz"
+  "version" "0.2.50"
+  dependencies:
+    "as-chain" "0.0.16"
+    "assemblyscript" "^0.20.3"
+    "handlebars" "4.7.7"
+    "ts-dedent" "^2.2.0"
+
 "errno@^0.1.1", "errno@~0.1.1":
   "integrity" "sha512-dJ6oBr5SQ1VSd9qkk7ByRgb/1SH4JZjCHSW/mr63/QcXO9zLVxvJ6Oy13nio03rxpSnVDDjFor75SjVeZWPW/A=="
   "resolved" "https://registry.npmjs.org/errno/-/errno-0.1.8.tgz"
@@ -3742,7 +3752,7 @@
   "resolved" "https://registry.npmjs.org/handle-thing/-/handle-thing-2.0.1.tgz"
   "version" "2.0.1"
 
-"handlebars@^4.7.7":
+"handlebars@^4.7.7", "handlebars@4.7.7":
   "integrity" "sha512-aAcXm5OAfE/8IXkcZvCepKU3VzW1/39Fb5ZuqMtgI/hT8X2YgoMvBY5dLhq/cpOvw7Lk1nK/UF71aLG/ZnVYRA=="
   "resolved" "https://registry.npmjs.org/handlebars/-/handlebars-4.7.7.tgz"
   "version" "4.7.7"
