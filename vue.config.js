@@ -47,14 +47,14 @@ module.exports = defineConfig({
     )
 
     config.resolve.fallback = {
-      path: require.resolve('path-browserify'),
-      url: require.resolve("url/"),
-      fs: require.resolve("browserify-fs"),
+      path: require.resolve('assemblyscript/util/browser/path.js'),
+      url: require.resolve("assemblyscript/util/browser/url.js"),
+      fs: require.resolve("assemblyscript/util/browser/fs.js"),
       module: require.resolve("assemblyscript/util/browser/module.js"),
       util: require.resolve("util/"),
       buffer: require.resolve('buffer-browserify'),
+      process: require.resolve('assemblyscript/util/browser/process.js'),
       stream: require.resolve('stream-browserify'),
-      process: require.resolve('process')
     }
 
     if (!config.experiments) {

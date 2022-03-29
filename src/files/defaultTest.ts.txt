@@ -24,7 +24,7 @@
 
       /* Create Contracts and accounts */
       const kvContract = blockchain.createAccount({
-        name: name,
+        name: 'kv',
         wasm: REPLACE_WASM,
         abi: REPLACE_ABI,
         sendsInline: true

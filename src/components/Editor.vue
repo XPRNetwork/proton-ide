@@ -58,61 +58,16 @@ import { h, defineComponent } from 'vue'
 import MonacoEditor from 'vue-monaco'
 import theme from './theme.json'
 import { config as watLanguageConfig, tokens as watLanguageTokens } from './wat'
+import contractSources from '../files/contractSources'
+import * as F from '../files/files'
+import defaultContract from '../files/defaultContract.ts.txt?assembly'
+import defaultTest from '../files/defaultTest.ts.txt?assembly'
 
 import asc from "assemblyscript/asc";
 import { ContractTransform } from "./transform";
-
-import defaultContract from './defaultContract.ts.txt?assembly'
-import defaultTest from './defaultTest.ts.txt?assembly'
-
-import asChainIndex from 'as-chain/assembly/index.ts?assembly'
-import asChainAction from 'as-chain/assembly/action.ts?assembly'
-import asChainAsset from 'as-chain/assembly/asset.ts?assembly'
-import asChainBignum from 'as-chain/assembly/bignum.ts?assembly'
-import asChainCrypto from 'as-chain/assembly/crypto.ts?assembly'
-import asChainDbi64 from 'as-chain/assembly/dbi64.ts?assembly'
-import asChainDebug from 'as-chain/assembly/debug.ts?assembly'
-import asChainDecorator from 'as-chain/assembly/decorator.ts?assembly'
-import asChainEnv from 'as-chain/assembly/env.ts?assembly'
-import asChainFloat128 from 'as-chain/assembly/float128.ts?assembly'
-import asChainHelpers from 'as-chain/assembly/helpers.ts?assembly'
-import asChainIdx64 from 'as-chain/assembly/idx64.ts?assembly'
-import asChainIdx128 from 'as-chain/assembly/idx128.ts?assembly'
-import asChainIdx256 from 'as-chain/assembly/idx256.ts?assembly'
-import asChainIdxdb from 'as-chain/assembly/idxdb.ts?assembly'
-import asChainIdxf64 from 'as-chain/assembly/idxf64.ts?assembly'
-import asChainIdxf128 from 'as-chain/assembly/idxf128.ts?assembly'
-import asChainMi from 'as-chain/assembly/mi.ts?assembly'
-import asChainName from 'as-chain/assembly/name.ts?assembly'
-import asChainSerializer from 'as-chain/assembly/serializer.ts?assembly'
-import asChainSingleton from 'as-chain/assembly/singleton.ts?assembly'
-import asChainSystem from 'as-chain/assembly/system.ts?assembly'
-import asChainTime from 'as-chain/assembly/time.ts?assembly'
-import asChainTransaction from 'as-chain/assembly/transaction.ts?assembly'
-import asChainUtils from 'as-chain/assembly/utils.ts?assembly'
-import asChainVarint from 'as-chain/assembly/varint.ts?assembly'
-
-import asBignumIndex from 'as-bignum/assembly/index.ts?assembly'
-import asBignumUtils from 'as-bignum/assembly/utils.ts?assembly'
-import asBignumGlobals from 'as-bignum/assembly/globals.ts?assembly'
-import asBignumIntegerIndex from 'as-bignum/assembly/integer/index.ts?assembly'
-import asBignumIntegeri128 from 'as-bignum/assembly/integer/i128.ts?assembly'
-import asBignumIntegeru128 from 'as-bignum/assembly/integer/u128.ts?assembly'
-import asBignumIntegeri256 from 'as-bignum/assembly/integer/i256.ts?assembly'
-import asBignumIntegeru256 from 'as-bignum/assembly/integer/u256.ts?assembly'
-import asBignumIntegerSafeIndex from 'as-bignum/assembly/integer/safe/index.ts?assembly'
-import asBignumIntegerSafei64 from 'as-bignum/assembly/integer/safe/i64.ts?assembly'
-import asBignumIntegerSafei128 from 'as-bignum/assembly/integer/safe/i128.ts?assembly'
-import asBignumIntegerSafei256 from 'as-bignum/assembly/integer/safe/i256.ts?assembly'
-import asBignumIntegerSafeu64 from 'as-bignum/assembly/integer/safe/u64.ts?assembly'
-import asBignumIntegerSafeu128 from 'as-bignum/assembly/integer/safe/u128.ts?assembly'
-import asBignumIntegerSafeu256 from 'as-bignum/assembly/integer/safe/u256.ts?assembly'
-
-import asChainTypes from '../types/as-chain.d.ts.txt?assembly'
+import { APIOptionImpl } from './ascoption'
 
 MonacoEditor.render = () => h('div')
-
-const MONACO_EDITOR_FONT = 'JetBrains Mono'
 
 let contractEditor = undefined as any
 let binaryEditor = undefined as any
@@ -162,7 +117,7 @@ export default defineComponent({
       });
 
       monaco.languages.typescript.typescriptDefaults.addExtraLib(asc.definitionFiles.assembly, "assemblyscript/std/assembly/index.d.ts")
-      monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainTypes, "as-chain/index.d.ts");
+      monaco.languages.typescript.typescriptDefaults.addExtraLib(F.asChainTypes, "as-chain/index.d.ts");
 
       // Common editor options
       const commonEditorOptions = {
@@ -172,7 +127,7 @@ export default defineComponent({
         scrollBeyondLastLine: false,
         tabSize: 2,
         fontSize: 16,
-        fontFamily: MONACO_EDITOR_FONT,
+        // fontFamily: MONACO_EDITOR_FONT,
         fontLigatures: true,
         padding: {
           bottom: 18,
@@ -251,78 +206,48 @@ export default defineComponent({
     async compile() {
       const sources: any = {
         'contract.ts': contractEditor.getValue(),
-        '/node_modules/as-chain/index.ts': asChainIndex,
-        '/node_modules/as-chain/action.ts': asChainAction,
-        '/node_modules/as-chain/asset.ts': asChainAsset,
-        '/node_modules/as-chain/bignum.ts': asChainBignum,
-        '/node_modules/as-chain/crypto.ts': asChainCrypto,
-        '/node_modules/as-chain/dbi64.ts': asChainDbi64,
-        '/node_modules/as-chain/debug.ts': asChainDebug,
-        '/node_modules/as-chain/decorator.ts': asChainDecorator,
-        '/node_modules/as-chain/env.ts': asChainEnv,
-        '/node_modules/as-chain/float128.ts': asChainFloat128,
-        '/node_modules/as-chain/helpers.ts': asChainHelpers,
-        '/node_modules/as-chain/idx64.ts': asChainIdx64,
-        '/node_modules/as-chain/idx128.ts': asChainIdx128,
-        '/node_modules/as-chain/idx256.ts': asChainIdx256,
-        '/node_modules/as-chain/idxdb.ts': asChainIdxdb,
-        '/node_modules/as-chain/idxf64.ts': asChainIdxf64,
-        '/node_modules/as-chain/idxf128.ts': asChainIdxf128,
-        '/node_modules/as-chain/mi.ts': asChainMi,
-        '/node_modules/as-chain/name.ts': asChainName,
-        '/node_modules/as-chain/serializer.ts': asChainSerializer,
-        '/node_modules/as-chain/singleton.ts': asChainSingleton,
-        '/node_modules/as-chain/system.ts': asChainSystem,
-        '/node_modules/as-chain/time.ts': asChainTime,
-        '/node_modules/as-chain/transaction.ts': asChainTransaction,
-        '/node_modules/as-chain/utils.ts': asChainUtils,
-        '/node_modules/as-chain/varint.ts': asChainVarint,
-        '/node_modules/as-bignum/index.ts': asBignumIndex,
-        '/node_modules/as-bignum/utils.ts': asBignumUtils,
-        '/node_modules/as-bignum/globals.ts': asBignumGlobals,
-        '/node_modules/as-bignum/integer/index.ts': asBignumIntegerIndex,
-        '/node_modules/as-bignum/integer/i128.ts': asBignumIntegeri128,
-        '/node_modules/as-bignum/integer/u128.ts': asBignumIntegeru128,
-        '/node_modules/as-bignum/integer/i256.ts': asBignumIntegeri256,
-        '/node_modules/as-bignum/integer/u256.ts': asBignumIntegeru256,
-        '/node_modules/as-bignum/integer/safe/index.ts': asBignumIntegerSafeIndex,
-        '/node_modules/as-bignum/integer/safe/i64.ts': asBignumIntegerSafei64,
-        '/node_modules/as-bignum/integer/safe/i128.ts': asBignumIntegerSafei128,
-        '/node_modules/as-bignum/integer/safe/i256.ts': asBignumIntegerSafei256,
-        '/node_modules/as-bignum/integer/safe/u64.ts': asBignumIntegerSafeu64,
-        '/node_modules/as-bignum/integer/safe/u128.ts': asBignumIntegerSafeu128,
-        '/node_modules/as-bignum/integer/safe/u256.ts': asBignumIntegerSafeu256,
+        ...contractSources
       }
 
+      // Create mem
+      const memoryStream = asc.createMemoryStream()
+
+      // Create options
       const outputs: any = {}
       const options = [
         'contract.ts',
         '--initialMemory', '1',
         '--runtime', 'stub',
         '--use', 'abort= ',
-        '-O2',
-        '-t', 'contract.wat',
-        '-o', 'contract.wasm',
-        // '--bindings', 'raw',
+        '-O2'
       ]
-
-        // const ascOption = require("eosio-asc/dist/ascoption.js");
-        // let apiOption = new ascOption.APIOptionImpl();
-        // const { stdout, error } = await asc.main(options, apiOption);
-        // apiOption.writeExtensionFile();
-
-      const memoryStream = asc.createMemoryStream()
-      const { stdout, error } = await asc.main(options, {
+    
+      const apiOptions = new APIOptionImpl(sources, {
         stdout: memoryStream,
         stderr: memoryStream,
-        readFile: (name: string) => {
-          return Object.prototype.hasOwnProperty.call(sources, name) ? sources[name] : null
-        },
         writeFile: (name: string, contents: string) => { outputs[name] = contents },
         listFiles: () => [],
         transforms: [new ContractTransform(abiEditor)]
-      })
+      });
+
+      const { stdout: initStdOut, error: initError } = await asc.main(options, apiOptions);
+      if (initError) {
+        alert(initError)
+        return
+      }
+
+      apiOptions.transforms = []
+
+      options.push(
+        '-t', 'contract.wat',
+        '-o', 'contract.wasm',
+      )
+
+      // Repeat
+      const { stdout, error } = await asc.main(options, apiOptions);
+      apiOptions.writeExtensionFile();
       
+      // Parse output
       let output = stdout.toString().trim()
       if (output.length) {
         output = ';; ' + output.replace(/\n/g, '\n;; ') + '\n'
