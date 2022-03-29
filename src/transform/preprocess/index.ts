@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import Handlebars from "./handlebars";
 import { Range } from "assemblyscript";
 import { ContractProgram} from "../contract/contract";
@@ -49,7 +47,7 @@ export class SourceModifier {
  
     public toModifyFileMap(): void {
         this.modifyPoints.forEach(item => {
-            const path = item.range.source.normalizedPath;
+            let path = item.range.source.normalizedPath;
             if (this.fileExtMap.has(path)) {
                 this.fileExtMap.get(path)!.push(item);
             } else {
@@ -62,7 +60,7 @@ export class SourceModifier {
 
 // Write text (also fallback)
 export function getExtCodeInfo(contractInfo: ContractProgram): SourceModifier {
-    const sourceModifier = new SourceModifier();
+    let sourceModifier = new SourceModifier();
     if (!contractInfo.contract) {
         throw Error("Not found annotation @contract that indicate contract!");
     }
@@ -70,7 +68,7 @@ export function getExtCodeInfo(contractInfo: ContractProgram): SourceModifier {
     const exportMain = render(contractInfo);
 
     contractInfo.contract.actionFuncDefs.forEach(item => {
-        const msgFun = <ActionFunctionDef>item;
+        let msgFun = <ActionFunctionDef>item;
         if (msgFun.messageDecorator.mutates == "false") {
             let body = msgFun.bodyRange.toString();
             body = body.replace(/{/i, `{\n  ${CONFIG.scope}Storage.mode = ${CONFIG.scope}StoreMode.R;`);
@@ -79,13 +77,13 @@ export function getExtCodeInfo(contractInfo: ContractProgram): SourceModifier {
     });
 
     contractInfo.contract.actionFuncDefs.forEach(message => {
-        const code = Handlebars.compile(actionTpl)(message);
+        let code = Handlebars.compile(actionTpl)(message);
         sourceModifier.addModifyPoint(new ModifyPoint(contractInfo.contract.range, ModifyType.APPEND, code));
     });
 
     contractInfo.contract.actionFuncDefs.forEach(message => {
-        const _message = <ActionFunctionDef>message;
-        const actionName = _message.messageDecorator.actionName;
+        let _message = <ActionFunctionDef>message;
+        let actionName = _message.messageDecorator.actionName;
         if (!EosioUtils.isValidName(actionName)) {
             throw new Error(`Invalid action name: ${actionName}. Trace: ${RangeUtil.location(message.declaration.range)}`);
         }
@@ -95,27 +93,27 @@ export function getExtCodeInfo(contractInfo: ContractProgram): SourceModifier {
         if (table.no_codegen) {
             return;
         }
-        const code = Handlebars.compile(tableTpl)(table);
+        let code = Handlebars.compile(tableTpl)(table);
         sourceModifier.addModifyPoint(new ModifyPoint(table.range, ModifyType.REPLACE, code));
     });
 
     contractInfo.serializers.forEach(s => {
-        const code = Handlebars.compile(serializerTpl)(s);
+        let code = Handlebars.compile(serializerTpl)(s);
         sourceModifier.addModifyPoint(new ModifyPoint(s.range, ModifyType.REPLACE, code));
     });
 
     contractInfo.optionals.forEach(s => {
-        const code = Handlebars.compile(optionalTpl)(s);
+        let code = Handlebars.compile(optionalTpl)(s);
         sourceModifier.addModifyPoint(new ModifyPoint(s.range, ModifyType.REPLACE, code));
     });
 
     contractInfo.binaryExtensions.forEach(s => {
-        const code = Handlebars.compile(binaryExtensionTpl)(s);
+        let code = Handlebars.compile(binaryExtensionTpl)(s);
         sourceModifier.addModifyPoint(new ModifyPoint(s.range, ModifyType.REPLACE, code));
     });
 
     contractInfo.variants.forEach(table => {
-        const code = Handlebars.compile(variantTpl)(table);
+        let code = Handlebars.compile(variantTpl)(table);
         sourceModifier.addModifyPoint(new ModifyPoint(table.range, ModifyType.REPLACE, code));
     });
 

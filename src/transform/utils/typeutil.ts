@@ -126,7 +126,7 @@ export class TypeHelper {
 
 
     static getCodecType(asType: string): string {
-        const type: string | undefined = TypeHelper.primitiveToCodecMap.get(asType);
+        let type: string | undefined = TypeHelper.primitiveToCodecMap.get(asType);
         return type == undefined ? asType : type;
     }
 
@@ -234,7 +234,7 @@ export class FieldDefHelper {
         // let plainType = field.type.plainType;
         // let arrayType = field.decorators.isPacked ? "Packed" : "Spread" ;
         // let arrayType = "";
-        const plainVarious = `${CONFIG.scope}${field.type.plainTypeNode}`;
+        let plainVarious = `${CONFIG.scope}${field.type.plainTypeNode}`;
         return plainVarious;
     }
 
@@ -244,8 +244,8 @@ export class FieldDefHelper {
      * @returns 
      */
     static getStorableExport(field: FieldDef): string {
-        const typeArgs = field.type.typeArguments.map(item => item.codecType).join(",");
-        const plainVarious = `${field.type.getNameSpace()}${field.type.plainType}<${typeArgs}>`;
+        let typeArgs = field.type.typeArguments.map(item => item.codecType).join(",");
+        let plainVarious = `${field.type.getNameSpace()}${field.type.plainType}<${typeArgs}>`;
         return plainVarious;
     }
 }

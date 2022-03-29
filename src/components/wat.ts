@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 // 'WebAssembly Text Format' Monarch language
 
 export const config = {

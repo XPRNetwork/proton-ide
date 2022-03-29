@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import {
     FieldDeclaration,
     NamedTypeNode,
@@ -31,13 +29,13 @@ export class DecoratorsInfo {
         this.decorators = decorators;
 
         if (this.decorators) {
-            for (const decorator of this.decorators) {
+            for (let decorator of this.decorators) {
                 if (DecoratorUtil.isDecoratorKind(decorator, ContractDecoratorKind.IGNORE)) {
                     this.isIgnore = true;
                 }
                 if (DecoratorUtil.isDecoratorKind(decorator, ContractDecoratorKind.PACKED)) {
                     this.isPacked = true;
-                    const decratorDef = new DecoratorNodeDef(decorator);
+                    let decratorDef = new DecoratorNodeDef(decorator);
                     if (decratorDef.pairs.has("capacity")) {
                         this.capacity = Number(decratorDef.pairs.get("capacity"));
                     }
@@ -63,7 +61,7 @@ export class FieldDef {
         this.rangeString = this.declaration.range.toString();
         this.varName = "_" + this.name;
         this.decorators = new DecoratorsInfo(this.fieldPrototype.declaration.decorators);
-        const storeKey = this.fieldPrototype.internalName + this.name;
+        let storeKey = this.fieldPrototype.internalName + this.name;
         this.resolveField();
     }
 
@@ -71,22 +69,22 @@ export class FieldDef {
      * 
      */
     private resolveField(): void {
-        const fieldDeclaration: FieldDeclaration = <FieldDeclaration>this.fieldPrototype.declaration;
-        const commonType: TypeNode | null = fieldDeclaration.type;
+        let fieldDeclaration: FieldDeclaration = <FieldDeclaration>this.fieldPrototype.declaration;
+        let commonType: TypeNode | null = fieldDeclaration.type;
         if (commonType && commonType.kind == NodeKind.NAMEDTYPE) {
-            const typeNode = <NamedTypeNode>commonType;
+            let typeNode = <NamedTypeNode>commonType;
             this.type = new NamedTypeNodeDef(this.fieldPrototype, typeNode);
         }
         // IF the type is array, special process
         if (this.type.typeKind == TypeKindEnum.ARRAY) {
-            const str = FieldDefHelper.getConcreteStorable(this);
+            let str = FieldDefHelper.getConcreteStorable(this);
             this.type.codecTypeAlias = FieldDefHelper.getStorableExport(this);
             this.type.instanceType = str;
             this.type.capacity = this.decorators.capacity;
         }
 
         if (this.type.typeKind == TypeKindEnum.MAP) {
-            const str = FieldDefHelper.getConcreteStorable(this);
+            let str = FieldDefHelper.getConcreteStorable(this);
             this.type.codecTypeAlias = FieldDefHelper.getStorableExport(this);
             this.type.instanceType = str;
         }
@@ -118,8 +116,8 @@ export class DecoratorNodeDef {
         if (decorator.args) {
             decorator.args.forEach(expression => {
                 if (expression.kind == NodeKind.BINARY) {
-                    const identifier = AstUtil.getIdentifier(expression);
-                    const val = AstUtil.getBinaryExprRight(expression);
+                    let identifier = AstUtil.getIdentifier(expression);
+                    let val = AstUtil.getBinaryExprRight(expression);
                     this.pairs.set(identifier, val);
                 }
             });
@@ -148,7 +146,7 @@ export class MessageDecoratorNodeDef extends DecoratorNodeDef {
             }
 
             for (let i=1; i<decorator.args.length; i++) {
-                const arg = AstUtil.getIdentifier(decorator.args![i]);
+                let arg = AstUtil.getIdentifier(decorator.args![i]);
                 if (arg == "notify") {
                     this.notify = true;
                 }
@@ -181,7 +179,7 @@ export class FunctionDef {
     }
 
     resolve(): void {
-        const params = this.funcProto.functionTypeNode.parameters;
+        let params = this.funcProto.functionTypeNode.parameters;
         params.forEach(param => {
             this.parameters.push(new ParameterNodeDef(this.funcProto, param));
         });
@@ -193,12 +191,12 @@ export class FunctionDef {
             this.isConstructor = true;
             return ;
         }
-        const returnType = this.funcProto.functionTypeNode.returnType;
+        let returnType = this.funcProto.functionTypeNode.returnType;
         if (returnType.range.toString() == '') {
             this.returnType = null;
             return;
         }
-        const returnTypeDesc = new NamedTypeNodeDef(this.funcProto, <NamedTypeNode>returnType);
+        let returnTypeDesc = new NamedTypeNodeDef(this.funcProto, <NamedTypeNode>returnType);
         if (returnTypeDesc.typeKind != TypeKindEnum.VOID) {
             returnTypeDesc.codecType = TypeHelper.getCodecType(returnTypeDesc.plainType);
             this.isReturnable = true;
@@ -226,7 +224,7 @@ export class ActionFunctionDef extends FunctionDef {
     constructor(funcPrototype: FunctionPrototype) {
         super(funcPrototype);
         AstUtil.checkPublic(this.declaration);
-        const msgDecorator = AstUtil.getSpecifyDecorator(funcPrototype.declaration, ContractDecoratorKind.ACTION);
+        let msgDecorator = AstUtil.getSpecifyDecorator(funcPrototype.declaration, ContractDecoratorKind.ACTION);
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.messageDecorator = new MessageDecoratorNodeDef(msgDecorator!);
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -266,7 +264,7 @@ export class DBIndexFunctionDef {
         } else {
             decoratorKind = ContractDecoratorKind.SECONDARY;
         }
-        const msgDecorator = AstUtil.getSpecifyDecorator(propertyPrototype.getterPrototype!.declaration, decoratorKind);
+        let msgDecorator = AstUtil.getSpecifyDecorator(propertyPrototype.getterPrototype!.declaration, decoratorKind);
         this.messageDecorator = new DecoratorNodeDef(msgDecorator!);
         this.bodyRange = propertyPrototype.getterPrototype!.declaration.range;
     }

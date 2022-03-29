@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import Handlebars from "handlebars";
 import { CONFIG } from "../config/compile";
 import { FieldDef, ParameterNodeDef, ActionFunctionDef, DBIndexFunctionDef } from "../contract/elementdef";
@@ -16,7 +14,7 @@ import process from "process"
 const WIN = process.platform === "win32";
 const EOL = WIN ? "\r\n" : "\n";
 
-const scope = CONFIG.scope;
+let scope = CONFIG.scope;
 
 
 const numberTypeMap: Map<string, string> = new Map([
@@ -35,7 +33,7 @@ const numberTypeMap: Map<string, string> = new Map([
 ]);
 
 Handlebars.registerHelper("generateActionMember", function (fn: ParameterNodeDef) {
-    const code: string[] = [];
+    let code: string[] = [];
     let plainType = fn.type.plainTypeNode;
 
     if (fn.type.typeNode.isNullable) {
@@ -57,8 +55,8 @@ Handlebars.registerHelper("generateActionMember", function (fn: ParameterNodeDef
 });
 
 Handlebars.registerHelper("generateActionParam", function (fn: ParameterNodeDef) {
-    const code: string[] = [];
-    const plainType = fn.type.plainTypeNode;
+    let code: string[] = [];
+    let plainType = fn.type.plainTypeNode;
 
     if (plainType == 'string') {
         code.push(`${fn.name}: string = "",`);
@@ -84,13 +82,13 @@ Handlebars.registerHelper("generateActionParam", function (fn: ParameterNodeDef)
 });
 
 Handlebars.registerHelper("generateActionConstructor", function (fn: ParameterNodeDef) {
-    const code: string[] = [];
+    let code: string[] = [];
     code.push(`if(${fn.name}) this.${fn.name} = ${fn.name};`);
     return code.join(EOL);
 });
 
 function fieldSerialize(name: string, type: NamedTypeNodeDef, isActionParam: boolean) {
-    const code: string[] = [];
+    let code: string[] = [];
     let pack_code = "";
     if (!isActionParam && type.typeNode.isNullable) {
         pack_code = dedent`\n
@@ -112,7 +110,7 @@ function fieldSerialize(name: string, type: NamedTypeNodeDef, isActionParam: boo
         } else {
             plainType = plainType.replace('[]', '');
         }
-        const numType = numberTypeMap.get(plainType.replace('[]', ''));
+        let numType = numberTypeMap.get(plainType.replace('[]', ''));
         if (numType) {
             pack_code += `enc.packNumberArray<${numType}>(this.${name})`;
         } else if (plainType == 'string') {
@@ -127,7 +125,7 @@ function fieldSerialize(name: string, type: NamedTypeNodeDef, isActionParam: boo
         if (type.typeNode.isNullable) {
             plainType = plainType.split('|')[0].trim();
         }
-        const numType = numberTypeMap.get(plainType);
+        let numType = numberTypeMap.get(plainType);
         if (numType) {
             pack_code += `enc.packNumber<${numType}>(this.${name});`;
         } else if (plainType == 'boolean') {
@@ -142,7 +140,7 @@ function fieldSerialize(name: string, type: NamedTypeNodeDef, isActionParam: boo
 }
 
 function fieldDeserialize(name: string, type: NamedTypeNodeDef) {
-    const code: string[] = [];
+    let code: string[] = [];
     if (type.typeKind == TypeKindEnum.ARRAY) {
         let plainType = type.plainTypeNode;
         if (type.typeNode.isNullable) {
@@ -154,7 +152,7 @@ function fieldDeserialize(name: string, type: NamedTypeNodeDef) {
         } else {
             plainType = plainType.replace('[]', '');
         }
-        const numType = numberTypeMap.get(plainType);
+        let numType = numberTypeMap.get(plainType);
         if (numType) {
             code.push(`this.${name} = dec.unpackNumberArray<${numType}>();`);
         } else if (plainType == 'string' ) {
@@ -183,7 +181,7 @@ function fieldDeserialize(name: string, type: NamedTypeNodeDef) {
         if (type.typeNode.isNullable) {
             plainType = plainType.split('|')[0].trim();
         }
-        const numType = numberTypeMap.get(plainType);
+        let numType = numberTypeMap.get(plainType);
         if (numType) {
             code.push(`this.${name} = dec.unpackNumber<${numType}>();`);
         } else if (plainType == 'boolean') {
@@ -226,7 +224,7 @@ function fieldGetSize(name: string, type: NamedTypeNodeDef, isActionParam: boole
             plainType = plainType.replace('[]', '');
         }
 
-        const numType = numberTypeMap.get(plainType);
+        let numType = numberTypeMap.get(plainType);
         if (numType) {
             code += `size += sizeof<${plainType}>()*this.${name}.length;`;
         } else if (plainType == 'string') {
@@ -245,8 +243,8 @@ function fieldGetSize(name: string, type: NamedTypeNodeDef, isActionParam: boole
     } else if (type.typeKind == TypeKindEnum.MAP) {
         throw Error(`map type is not supported currently!Trace ${RangeUtil.location(type.typeNode.range)}`);
     } else {
-        const plainType = type.plainTypeNode;
-        const numType = numberTypeMap.get(plainType);
+        let plainType = type.plainTypeNode;
+        let numType = numberTypeMap.get(plainType);
         if (numType) {
             code += `size += sizeof<${numType}>();`;
         } else if (plainType == 'string') {
@@ -259,7 +257,7 @@ function fieldGetSize(name: string, type: NamedTypeNodeDef, isActionParam: boole
 }
 
 Handlebars.registerHelper("optionalSerialize", function (field: FieldDef) {
-    const code = `
+    let code = `
         if (this.${field.name}) {
             enc.packNumber<u8>(1);
         } else {
@@ -271,7 +269,7 @@ Handlebars.registerHelper("optionalSerialize", function (field: FieldDef) {
 });
 
 Handlebars.registerHelper("optionalDeserialize", function (field: FieldDef) {
-    const code = `
+    let code = `
         let hasValue = dec.unpackNumber<u8>();
         if (hasValue == 0) {
             this.${field.name} = null;
@@ -282,7 +280,7 @@ Handlebars.registerHelper("optionalDeserialize", function (field: FieldDef) {
 });
 
 Handlebars.registerHelper("optionalGetSize", function (field: FieldDef) {
-    const code = `
+    let code = `
         if (!this.${field.name}) {
             return 1;
         }
@@ -293,9 +291,9 @@ Handlebars.registerHelper("optionalGetSize", function (field: FieldDef) {
 
 Handlebars.registerHelper("variantSerialize", function (field: FieldDef) {
     let code;
-    const plainType = field.type.plainTypeNode;
+    let plainType = field.type.plainTypeNode;
     
-    const serializeCode = fieldSerialize(field.name, field.type, false);
+    let serializeCode = fieldSerialize(field.name, field.type, false);
 
     return `
     if (this._index == ${field._index}) {
@@ -305,7 +303,7 @@ Handlebars.registerHelper("variantSerialize", function (field: FieldDef) {
 });
 
 Handlebars.registerHelper("variantDeserialize", function (field: FieldDef) {
-    const deserializecode = fieldDeserialize(field.name, field.type);
+    let deserializecode = fieldDeserialize(field.name, field.type);
     return `
     if (this._index == ${field._index}) {
         ${deserializecode}
@@ -313,7 +311,7 @@ Handlebars.registerHelper("variantDeserialize", function (field: FieldDef) {
 });
 
 Handlebars.registerHelper("variantGetSize", function (field: FieldDef) {
-    const getSize = fieldGetSize(field.name, field.type, false);
+    let getSize = fieldGetSize(field.name, field.type, false);
     return `
     if (this._index == ${field._index}) {
         ${getSize}
@@ -321,7 +319,7 @@ Handlebars.registerHelper("variantGetSize", function (field: FieldDef) {
 });
 
 Handlebars.registerHelper("variantNew", function (field: FieldDef) {
-    const code: string[] = [];
+    let code: string[] = [];
     let plainType = field.type.plainTypeNode;
     if (field.type.typeNode.isNullable) {
         plainType = plainType.split('|')[0].trim();
@@ -352,13 +350,13 @@ Handlebars.registerHelper("variantNew", function (field: FieldDef) {
 });
 
 Handlebars.registerHelper("variantGet", function (field: FieldDef) {
-    const code: string[] = [];
+    let code: string[] = [];
     code.push(`
     is${field.name}(): bool {
         return this._index == ${field._index};
     }`);
 
-    const plainType = field.type.plainTypeNode;
+    let plainType = field.type.plainTypeNode;
     if (TypeHelper.isPrimitiveType(field.type.typeKind)) {
         code.push(`
     get${field.name}(): ${plainType} {
@@ -381,7 +379,7 @@ Handlebars.registerHelper("variantGet", function (field: FieldDef) {
 
 
 Handlebars.registerHelper("binaryExtensionSerialize", function (field: FieldDef) {
-    const code = `
+    let code = `
         if (this.${field.name}) {
             enc.packNumber<u8>(1);
         } else {
@@ -393,7 +391,7 @@ Handlebars.registerHelper("binaryExtensionSerialize", function (field: FieldDef)
 });
 
 Handlebars.registerHelper("binaryExtensionDeserialize", function (field: FieldDef) {
-    const code = `
+    let code = `
         if (dec.isEnd()) {
             return 0;
         }
@@ -402,7 +400,7 @@ Handlebars.registerHelper("binaryExtensionDeserialize", function (field: FieldDe
 });
 
 Handlebars.registerHelper("binaryExtensionGetSize", function (field: FieldDef) {
-    const code = `
+    let code = `
         if (!this.${field.name}) {
             return 0;
         }
@@ -435,7 +433,7 @@ Handlebars.registerHelper("serializerParameterGetSize", function (field: Paramet
 });
 
 function handleAction(action: ActionFunctionDef): string {
-    const parameters: string[] = [];
+    let parameters: string[] = [];
     let unpackCode = '';
     if (action.messageDecorator.ignore) {
         action.parameters.forEach(parameter => {
@@ -454,8 +452,8 @@ function handleAction(action: ActionFunctionDef): string {
         unpackCode = "args.unpack(actionData);"
     }
 
-    const actionName = action.messageDecorator.actionName;
-    const actionNameHex = EosioUtils.nameToHexString(actionName);
+    let actionName = action.messageDecorator.actionName;
+    let actionNameHex = EosioUtils.nameToHexString(actionName);
 
     return dedent`
         if (action == ${actionNameHex}) {//${actionName}
@@ -481,20 +479,20 @@ Handlebars.registerHelper("handleNotifyAction", function (action: ActionFunction
 });
 
 Handlebars.registerHelper("getPrimaryValue", function (fn: DBIndexFunctionDef) {
-    const code: string[] = [];
+    let code: string[] = [];
     code.push(`${fn.getterPrototype?.rangeString}`);
     return code.join('');
 });
 
 Handlebars.registerHelper("ExtractClassBody", function (range: Range) {
-    const src = range.toString().replace(/super\(\);?/, '');
-    const start = src.indexOf('{');
-    const end = src.lastIndexOf('}');
+    let src = range.toString().replace(/super\(\);?/, '');
+    let start = src.indexOf('{');
+    let end = src.lastIndexOf('}');
     return src.substring(start+1, end-1);
 });
 
 Handlebars.registerHelper("generategetPrimaryFunction", function (table: TableInterpreter) {
-    const code: string[] = [];
+    let code: string[] = [];
     if (table.singleton) {
         code.push(dedent`
             getPrimaryValue(): u64 {
@@ -515,7 +513,7 @@ Handlebars.registerHelper("generategetPrimaryFunction", function (table: TableIn
 });
 
 Handlebars.registerHelper("getSecondaryValue", function (fn: DBIndexFunctionDef) {
-    const code: string[] = [];
+    let code: string[] = [];
     let plainType = fn.getterPrototype!.returnType!.plainTypeNode;
     if (plainType == 'chain.U128') {
         plainType = 'U128';
@@ -533,7 +531,7 @@ Handlebars.registerHelper("getSecondaryValue", function (fn: DBIndexFunctionDef)
 });
 
 Handlebars.registerHelper("setSecondaryValue", function (fn: DBIndexFunctionDef) {
-    const code: string[] = [];
+    let code: string[] = [];
     let plainType = fn.getterPrototype!.returnType!.plainTypeNode;
     if (plainType == 'chain.U128') {
         plainType = 'U128';
@@ -560,7 +558,7 @@ const dbTypeToDBClass: Map<string, string> = new Map([
 ]);
 
 Handlebars.registerHelper("newSecondaryDB", function (fn: DBIndexFunctionDef) {
-    const code: string[] = [];
+    let code: string[] = [];
     let plainType = fn.getterPrototype!.returnType!.plainTypeNode;
     if (plainType == 'chain.U128') {
         plainType = 'U128';
@@ -571,7 +569,7 @@ Handlebars.registerHelper("newSecondaryDB", function (fn: DBIndexFunctionDef) {
     }
 
     plainType = plainType.toUpperCase();
-    const dbClass = dbTypeToDBClass.get(plainType);
+    let dbClass = dbTypeToDBClass.get(plainType);
     if (!dbClass) {
         throw Error(`unknown index type!Trace ${RangeUtil.location(fn.bodyRange)}`);
     }
@@ -580,7 +578,7 @@ Handlebars.registerHelper("newSecondaryDB", function (fn: DBIndexFunctionDef) {
 });
 
 Handlebars.registerHelper("generateGetIdxDBFunction", function (fn: DBIndexFunctionDef) {
-    const code: string[] = [];
+    let code: string[] = [];
     let plainType = fn.getterPrototype!.returnType!.plainTypeNode;
     if (plainType == 'chain.U128') {
         plainType = 'U128';
@@ -591,7 +589,7 @@ Handlebars.registerHelper("generateGetIdxDBFunction", function (fn: DBIndexFunct
     }
 
     plainType = plainType.toUpperCase();
-    const dbClass = dbTypeToDBClass.get(plainType);
+    let dbClass = dbTypeToDBClass.get(plainType);
     
     code.push(dedent`
         get ${fn.getterPrototype!.declaration.name.text}DB(): _chain.${dbClass} {
@@ -602,7 +600,7 @@ Handlebars.registerHelper("generateGetIdxDBFunction", function (fn: DBIndexFunct
 });
 
 Handlebars.registerHelper("generateSetIdxDBValueFunction", function (fn: DBIndexFunctionDef) {
-    const code: string[] = [];
+    let code: string[] = [];
     let plainType = fn.getterPrototype!.returnType!.plainTypeNode;
     if (plainType == 'chain.U128') {
         plainType = 'U128';
@@ -612,9 +610,9 @@ Handlebars.registerHelper("generateSetIdxDBValueFunction", function (fn: DBIndex
         plainType = 'Float128';
     }
 
-    const dbClass = dbTypeToDBClass.get(plainType.toUpperCase());
+    let dbClass = dbTypeToDBClass.get(plainType.toUpperCase());
     
-    const getter = fn.getterPrototype!.declaration.name.text;
+    let getter = fn.getterPrototype!.declaration.name.text;
     let valueName = getter.charAt(0).toUpperCase();
     valueName += getter.slice(1);
 
@@ -632,9 +630,9 @@ Handlebars.registerHelper("generateSetIdxDBValueFunction", function (fn: DBIndex
  * Register the tag of each.
  */
 Handlebars.registerHelper("each", function (context, options) {
-    let ret = "";
-    for (let i = 0, j = context.length; i < j; i++) {
-        const data = context[i];
+    var ret = "";
+    for (var i = 0, j = context.length; i < j; i++) {
+        let data = context[i];
         data._index = i;
         data.isMid = (i != j - 1 || (i == 0 && j != 1));
         ret = ret + options.fn(data);

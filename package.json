@@ -10,7 +10,7 @@
   "dependencies": {
     "as-bignum": "^0.2.18",
     "as-chain": "^0.0.16",
-    "assemblyscript": "^0.20.2",
+    "assemblyscript": "^0.20.3",
     "core-js": "^3.8.3",
     "handlebars": "^4.7.7",
     "monaco-editor": "^0.20.0",
@@ -21,8 +21,8 @@
   },
   "devDependencies": {
     "@babel/plugin-syntax-top-level-await": "^7.14.5",
-    "@typescript-eslint/eslint-plugin": "^5.4.0",
-    "@typescript-eslint/parser": "^5.4.0",
+    "@typescript-eslint/eslint-plugin": "^5.17.0",
+    "@typescript-eslint/parser": "^5.17.0",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-plugin-typescript": "~5.0.0",
@@ -31,7 +31,7 @@
     "browserify-fs": "^1.0.0",
     "buffer-browserify": "^0.2.5",
     "eslint": "^7.32.0",
-    "eslint-plugin-vue": "^8.0.3",
+    "eslint-plugin-vue": "^8.5.0",
     "monaco-editor-webpack-plugin": "^1.9.1",
     "path-browserify": "^1.0.1",
     "process": "^0.11.10",
@@ -40,29 +40,6 @@
     "url": "^0.11.0",
     "util": "^0.12.4"
   },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended",
-      "@vue/typescript/recommended"
-    ],
-    "parserOptions": {
-      "ecmaVersion": 2020
-    },
-    "rules": {
-      "@typescript-eslint/ban-ts-comment": 0
-    }
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead",
-    "not ie 11"
-  ],
   "resolutions": {
     "monaco-editor": "0.20.0",
     "monaco-editor-webpack-plugin": "1.9.1",

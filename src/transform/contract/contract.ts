@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import {
     ClassPrototype,
     Program,
@@ -64,23 +62,23 @@ export class ContractProgram {
             }
 
             if (ElementUtil.isTableClassPrototype(element)) {
-                const intercepter = new TableInterpreter(<ClassPrototype>element);
+                let intercepter = new TableInterpreter(<ClassPrototype>element);
                 this.tables.push(intercepter);
                 this.CheckClassFields(intercepter);
             }
 
             if (ElementUtil.isSerializerClassPrototype(element)) {
-                const intercepter = new SerializerInterpreter(<ClassPrototype>element);
+                let intercepter = new SerializerInterpreter(<ClassPrototype>element);
                 this.AddSerializer(intercepter);
                 this.CheckClassFields(intercepter);
             }
 
             if (ElementUtil.isOptionalClassPrototype(element)) {
-                const intercepter = new SerializerInterpreter(<ClassPrototype>element);
+                let intercepter = new SerializerInterpreter(<ClassPrototype>element);
                 if (intercepter.fields.length > 1) {
                     throw Error(`optional class can only contain 1 member. Trace: ${RangeUtil.location(intercepter.range)}`);
                 }
-                const field = intercepter.fields[0];
+                let field = intercepter.fields[0];
                 if (!field.declaration.type?.isNullable) {
                     throw Error(`optional member must be nullable! Trace: ${RangeUtil.location(intercepter.range)}`);
                 }
@@ -88,11 +86,11 @@ export class ContractProgram {
             }
 
             if (ElementUtil.isBinaryExtensionClassPrototype(element)) {
-                const intercepter = new SerializerInterpreter(<ClassPrototype>element);
+                let intercepter = new SerializerInterpreter(<ClassPrototype>element);
                 if (intercepter.fields.length > 1) {
                     throw Error(`optional class can only contain 1 member. Trace: ${RangeUtil.location(intercepter.range)}`);
                 }
-                const field = intercepter.fields[0];
+                let field = intercepter.fields[0];
                 if (!field.declaration.type?.isNullable) {
                     throw Error(`optional member must be nullable! Trace: ${RangeUtil.location(intercepter.range)}`);
                 }
@@ -100,10 +98,10 @@ export class ContractProgram {
             }
 
             if (ElementUtil.isVariantClassPrototype(element)) {
-                const intercepter = new SerializerInterpreter(<ClassPrototype>element);
-                const fieldMap = new Map<string, boolean>();
+                let intercepter = new SerializerInterpreter(<ClassPrototype>element);
+                let fieldMap = new Map<string, boolean>();
                 intercepter.fields.forEach(x => {
-                    const tp = x.type.plainTypeNode
+                    let tp = x.type.plainTypeNode
                     if (fieldMap.has(tp)) {
                         throw new Error(`Duplicated type in variant ${intercepter.className}! Trace ${RangeUtil.location(x.declaration.range)}`)
                     }
@@ -182,7 +180,7 @@ export class ContractProgram {
     }
 
     findType(plainType: string) {
-        const tp = TypeHelper.primitiveToAbiMap.get(plainType)!;
+        let tp = TypeHelper.primitiveToAbiMap.get(plainType)!;
         if (tp) {
             return tp;
         }
@@ -193,7 +191,7 @@ export class ContractProgram {
 
         if (cls) {
             plainType = cls.fields[0].type.plainTypeNode.replace("chain.", "");
-            const type = this.findType(plainType)!;
+            let type = this.findType(plainType)!;
             if (type) {
                 return type + "?";
             }
@@ -205,7 +203,7 @@ export class ContractProgram {
 
         if (cls) {
             plainType = cls.fields[0].type.plainTypeNode.replace("chain.", "");
-            const type = this.findType(plainType)!;
+            let type = this.findType(plainType)!;
             if (type) {
                 return type + "$";
             }
@@ -233,7 +231,7 @@ export class ContractProgram {
         this.customAbiTypes.push(cls);
 
         cls.fields.forEach(x => {
-            const cls = this.findClass(x.type.plainTypeNode);
+            let cls = this.findClass(x.type.plainTypeNode);
             if (cls) {
                 this.addAbiClass(cls);
             }
@@ -241,7 +239,7 @@ export class ContractProgram {
     }
 
     parseField(name: string, type: NamedTypeNodeDef) {
-        const abiField = new ABIStructField();
+        let abiField = new ABIStructField();
         abiField.name = name;
         let plainType = type.plainTypeNode;
         if (type.typeNode.isNullable) {
@@ -280,7 +278,7 @@ export class ContractProgram {
             return
         }
 
-        const cls = this.allClasses.find(cls => {
+        let cls = this.allClasses.find(cls => {
             return cls.className == className;
         });
         if (cls) {
@@ -297,8 +295,8 @@ export class ContractProgram {
         ].forEach(classes => {
             classes.forEach(cls => {
                 cls.fields.forEach(field => {
-                    const plainType = field.type.plainTypeNode;
-                    const fieldClassType = this.findClass(plainType)
+                    let plainType = field.type.plainTypeNode;
+                    let fieldClassType = this.findClass(plainType)
                     if (fieldClassType) {
                         this.addAbiClass(fieldClassType);
                     }
@@ -308,7 +306,7 @@ export class ContractProgram {
 
         this.contract.actionFuncDefs.forEach(func => {
             func.parameters.forEach(parameter => {
-                const cls = this.findClass(parameter.type.plainTypeNode)
+                let cls = this.findClass(parameter.type.plainTypeNode)
                 if (cls) {
                     this.addAbiClass(cls);
                 }
@@ -317,14 +315,14 @@ export class ContractProgram {
     }
 
     getAbiInfo() {
-        const abi = new ABI();
+        let abi = new ABI();
         this.findAllAbiTypes();
 
         this.variants.forEach((variant, i) => {
-            const def = new VariantDef();
+            let def = new VariantDef();
             def.name = variant.className;
             variant.fields.forEach((field, i) => {
-                const ret = this.parseField(field.name, field.type);
+                let ret = this.parseField(field.name, field.type);
                 def.types.push(ret.type);
             });
             abi.variants.push(def);
@@ -335,17 +333,17 @@ export class ContractProgram {
                 return;
             }
 
-            const abiTable = new ABITable();
+            let abiTable = new ABITable();
             abiTable.name = table.tableName;
             abiTable.type = table.className;
             abiTable.index_type = 'i64';
             abi.tables.push(abiTable);
     
-            const abiStruct = new ABIStruct();
+            let abiStruct = new ABIStruct();
             abiStruct.name = table.className;
             abiStruct.base = "";
             table.fields.forEach((field, i) => {
-                const ret = this.parseField(field.name, field.type);
+                let ret = this.parseField(field.name, field.type);
                 if (ret.type.endsWith("$")) {
                     if (i+1 != table.fields.length) {
                         throw Error(`binaryextension can only appear as the last member! Trace ${RangeUtil.location(field.declaration.range)}`);
@@ -362,22 +360,22 @@ export class ContractProgram {
                 return;
             }
 
-            const actionName = (<ActionFunctionDef>func).messageDecorator.actionName;
-            const action = new ABIAction(actionName, actionName);
+            let actionName = (<ActionFunctionDef>func).messageDecorator.actionName;
+            let action = new ABIAction(actionName, actionName);
             abi.actions.push(action);
     
-            const abiStruct = new ABIStruct();
+            let abiStruct = new ABIStruct();
             abiStruct.name = actionName;
             abiStruct.base = "";
             func.parameters.forEach(parameter => {
-                const ret = this.parseField(parameter.name, parameter.type);
+                let ret = this.parseField(parameter.name, parameter.type);
                 abiStruct.fields.push(ret);
             });
             abi.structs.push(abiStruct);
         });
 
         this.customAbiTypes.forEach(cls => {
-            const found = abi.structs.find(x => {
+            let found = abi.structs.find(x => {
                 return x.name == cls.className
             });
 
@@ -385,11 +383,11 @@ export class ContractProgram {
                 return;
             }
 
-            const abiStruct = new ABIStruct();
+            let abiStruct = new ABIStruct();
             abiStruct.name = cls.className;
             abiStruct.base = "";
             cls.fields.forEach(field => {
-                const ret = this.parseField(field.name, field.type);
+                let ret = this.parseField(field.name, field.type);
                 abiStruct.fields.push(ret);
             });
             abi.structs.push(abiStruct);
@@ -399,6 +397,6 @@ export class ContractProgram {
 }
 
 export function getContractInfo(program: Program): ContractProgram {
-    const contract = new ContractProgram(program);
+    let contract = new ContractProgram(program);
     return contract;
 }

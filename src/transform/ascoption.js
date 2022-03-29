@@ -67,7 +67,7 @@ function modifySourceText(sourceText, point) {
         return sourceText;
     }
     return sourceText;
-}
+};
 
 var APIOptionImpl = /** @class */ (function () {
     function APIOptionImpl() {

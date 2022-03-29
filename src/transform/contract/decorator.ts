@@ -1,50 +1,47 @@
-// @ts-nocheck
-
-import { DecoratorKind, DecoratorNode, Expression, IdentifierExpression, NodeKind } from "assemblyscript/dist/assemblyscript";
+import { DecoratorKind, DecoratorNode, Expression, IdentifierExpression, NodeKind } from "assemblyscript";
 import { ContractDecoratorKind } from "../enums/decorator";
+import { LowerCaseCode } from "../utils/charutil";
 import { RangeUtil } from "../utils/utils";
-
-const toCharCode = (char: string) => char.charCodeAt(0);
 
 function fromNode(nameNode: Expression): ContractDecoratorKind {
     if (nameNode.kind == NodeKind.IDENTIFIER) {
-        const nameStr = (<IdentifierExpression>nameNode).text;
-        switch (toCharCode(nameStr)) {
-            case toCharCode("a"): {
+        let nameStr = (<IdentifierExpression>nameNode).text;
+        switch (nameStr.charCodeAt(0)) {
+            case LowerCaseCode.a: {
                 if (nameStr == "action") return ContractDecoratorKind.ACTION;
                 break;
             }
-            case toCharCode("b"): {
+            case LowerCaseCode.b: {
                 if (nameStr == "binaryextension") return ContractDecoratorKind.BINARYEXTENSION;
                 break;
             }
-            case toCharCode("c"): {
+            case LowerCaseCode.c: {
                 if (nameStr == "contract") return ContractDecoratorKind.CONTRACT;
                 break;
             }
-            case toCharCode("i"): {
+            case LowerCaseCode.i: {
                 if (nameStr == "ignore") return ContractDecoratorKind.IGNORE;
                 break;
             }
-            case toCharCode("o"): {
+            case LowerCaseCode.o: {
                 if (nameStr == "optional") return ContractDecoratorKind.OPTIONAL;
                 break;
             }
-            case toCharCode("p"): {
+            case LowerCaseCode.p: {
                 if (nameStr == "packer") return ContractDecoratorKind.SERIALIZER;
                 if (nameStr == "primary") return ContractDecoratorKind.PRIMARY;
                 break;
             }
-            case toCharCode("s"): {
+            case LowerCaseCode.s: {
                 if (nameStr == "secondary") return ContractDecoratorKind.SECONDARY;
                 if (nameStr == "serializer") return ContractDecoratorKind.SERIALIZER;
                 break;
             }
-            case toCharCode("t"): {
+            case LowerCaseCode.t: {
                 if (nameStr == "table") return ContractDecoratorKind.TABLE;
                 break;
             }
-            case toCharCode("v"): {
+            case LowerCaseCode.v: {
                 if (nameStr == "variant") return ContractDecoratorKind.VARIANT;
                 break;
             }
@@ -57,7 +54,7 @@ export function getCustomDecoratorKind(decorator: DecoratorNode): ContractDecora
     if (decorator.decoratorKind != DecoratorKind.CUSTOM) {
         return ContractDecoratorKind.INTERNAL;
     }
-    const kind = fromNode(decorator.name);
+    let kind = fromNode(decorator.name);
     if (kind == ContractDecoratorKind.OTHER) {
         throw new Error(`The contract don't support the decorator ${decorator.name.range.toString()}, please check ${RangeUtil.location(decorator.range)}`);
     }

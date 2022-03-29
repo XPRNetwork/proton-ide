@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
     ElementKind,
     ClassPrototype,
@@ -70,7 +69,7 @@ export class ClassInterpreter {
         this.classPrototype.instanceMembers &&
             this.classPrototype.instanceMembers.forEach((element, _) => {
                 if (element.kind == ElementKind.FUNCTION_PROTOTYPE) {
-                    const func = new FunctionDef(<FunctionPrototype>element);
+                    let func = new FunctionDef(<FunctionPrototype>element);
                     if (!func.isConstructor) {
                         this.functions.push(func);
                     } else {
@@ -105,7 +104,7 @@ export class ContractInterpreter extends ClassInterpreter {
         this.classPrototype.instanceMembers &&
             this.classPrototype.instanceMembers.forEach((instance, _) => {
                 if (ElementUtil.isActionFuncPrototype(instance)) {
-                    const actionFunc = new ActionFunctionDef(<FunctionPrototype>instance);
+                    let actionFunc = new ActionFunctionDef(<FunctionPrototype>instance);
                     this.actionFuncDefs.push(actionFunc);
                 }
             });
@@ -114,11 +113,11 @@ export class ContractInterpreter extends ClassInterpreter {
 
     private resolveBaseClass(sonClassPrototype: ClassPrototype): void {
         if (sonClassPrototype.basePrototype) {
-            const basePrototype = sonClassPrototype.basePrototype;
+            let basePrototype = sonClassPrototype.basePrototype;
             basePrototype.instanceMembers &&
                 basePrototype.instanceMembers.forEach((instance, _) => {
                     if (ElementUtil.isActionFuncPrototype(instance)) {
-                        const actionFunc = new ActionFunctionDef(<FunctionPrototype>instance);
+                        let actionFunc = new ActionFunctionDef(<FunctionPrototype>instance);
                         this.actionFuncDefs.push(actionFunc);
                     }
                 });
@@ -136,9 +135,9 @@ export class ContractInterpreter extends ClassInterpreter {
 export class TableInterpreter extends ClassInterpreter {
     // The first case is lower.
     tableName: string;
-    singleton = false;
-    no_codegen = false;
-    no_abigen = false;
+    singleton: boolean = false;
+    no_codegen: boolean = false;
+    no_abigen: boolean = false;
     version: string;
     primaryFuncDef: DBIndexFunctionDef | null = null;
     secondaryFuncDefs: DBIndexFunctionDef[] = [];
@@ -148,14 +147,14 @@ export class TableInterpreter extends ClassInterpreter {
         this.version = "1.0";
         this.resolveFieldMembers();
         this.resolveContractClass();
-        const decorator = AstUtil.getSpecifyDecorator(clzPrototype.declaration, ContractDecoratorKind.TABLE)!;
+        let decorator = AstUtil.getSpecifyDecorator(clzPrototype.declaration, ContractDecoratorKind.TABLE)!;
         this.tableName = AstUtil.getIdentifier(decorator.args![0]);
 
         if (!EosioUtils.isValidName(this.tableName)) {
             throw new Error(`Decorator: Invalid table name. Trace: ${RangeUtil.location(decorator.range)} `);
         }
         for (let i=1; i<decorator.args!.length; i++) {
-            const arg = AstUtil.getIdentifier(decorator.args![1]);
+            let arg = AstUtil.getIdentifier(decorator.args![1]);
             if (arg == "singleton") {
                 this.singleton = true;
             }
@@ -182,7 +181,7 @@ export class TableInterpreter extends ClassInterpreter {
                 }
                 if (ElementUtil.isSecondaryFuncPrototype(instance)) {
                     // console.log("+++++++secondary function:", instance.name);
-                    const actionFunc = new DBIndexFunctionDef(<PropertyPrototype>instance, 1);
+                    let actionFunc = new DBIndexFunctionDef(<PropertyPrototype>instance, 1);
                     this.secondaryFuncDefs.push(actionFunc);
                 }
             });

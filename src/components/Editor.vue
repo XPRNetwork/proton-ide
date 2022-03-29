@@ -51,7 +51,7 @@
 
 <script lang="ts">
 import asc from "assemblyscript/asc";
-import { ContractTransform } from "./transform";
+import { ContractTransform } from "../transform";
 import { config as watLanguageConfig, tokens as watLanguageTokens } from './wat'
 import MonacoEditor from 'vue-monaco'
 import { h, defineComponent } from 'vue'
@@ -346,14 +346,14 @@ export default defineComponent({
       ]
 
       const { stdout, error } = await asc.main(options, {
-        checkAll: true,
+        // checkAll: true,
         stdout: memoryStream,
         stderr: memoryStream,
         readFile: (name: string) => {
           // alert(name)
           return Object.prototype.hasOwnProperty.call(sources, name) ? sources[name] : null
         },
-        writeFile: (name: string, contents: string) => outputs[name] = contents,
+        writeFile: (name: string, contents: string) => { outputs[name] = contents },
         listFiles: () => [],
         transforms: [new ContractTransform()]
       })

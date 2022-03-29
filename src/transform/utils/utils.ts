@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import {
     DeclarationStatement,
     ClassDeclaration,
@@ -35,7 +33,7 @@ export class ElementUtil {
 
     static isTopContractClass(element: Element): boolean {
         if (element.kind == ElementKind.CLASS_PROTOTYPE) {
-            const clzPrototype = <ClassPrototype>element;
+            let clzPrototype = <ClassPrototype>element;
             return clzPrototype.declaration.range.source.sourceKind == SourceKind.USER_ENTRY &&
                 AstUtil.hasSpecifyDecorator(clzPrototype.declaration, ContractDecoratorKind.CONTRACT);
         }
@@ -44,7 +42,7 @@ export class ElementUtil {
 
     static isTableClassPrototype(element: Element): boolean {
         if (element.kind == ElementKind.CLASS_PROTOTYPE) {
-            const clzPrototype = <ClassPrototype>element;
+            let clzPrototype = <ClassPrototype>element;
             return AstUtil.hasSpecifyDecorator(clzPrototype.declaration, ContractDecoratorKind.TABLE);
         }
         return false;
@@ -52,7 +50,7 @@ export class ElementUtil {
 
     static isSerializerClassPrototype(element: Element): boolean {
         if (element.kind == ElementKind.CLASS_PROTOTYPE) {
-            const clzPrototype = <ClassPrototype>element;
+            let clzPrototype = <ClassPrototype>element;
             return AstUtil.hasSpecifyDecorator(clzPrototype.declaration, ContractDecoratorKind.SERIALIZER);
         }
         return false;
@@ -60,7 +58,7 @@ export class ElementUtil {
 
     static isOptionalClassPrototype(element: Element): boolean {
         if (element.kind == ElementKind.CLASS_PROTOTYPE) {
-            const clzPrototype = <ClassPrototype>element;
+            let clzPrototype = <ClassPrototype>element;
             return AstUtil.hasSpecifyDecorator(clzPrototype.declaration, ContractDecoratorKind.OPTIONAL);
         }
         return false;
@@ -68,7 +66,7 @@ export class ElementUtil {
 
     static isBinaryExtensionClassPrototype(element: Element): boolean {
         if (element.kind == ElementKind.CLASS_PROTOTYPE) {
-            const clzPrototype = <ClassPrototype>element;
+            let clzPrototype = <ClassPrototype>element;
             return AstUtil.hasSpecifyDecorator(clzPrototype.declaration, ContractDecoratorKind.BINARYEXTENSION);
         }
         return false;
@@ -76,7 +74,7 @@ export class ElementUtil {
 
     static isVariantClassPrototype(element: Element): boolean {
         if (element.kind == ElementKind.CLASS_PROTOTYPE) {
-            const clzPrototype = <ClassPrototype>element;
+            let clzPrototype = <ClassPrototype>element;
             return AstUtil.hasSpecifyDecorator(clzPrototype.declaration, ContractDecoratorKind.VARIANT);
         }
         return false;
@@ -95,12 +93,12 @@ export class ElementUtil {
        * @param classPrototype classPrototype
        */
     static impledInterfaces(classPrototype: ClassPrototype): string[] {
-        let tempClz: ClassPrototype | null = classPrototype;
-        const interfaces: string[] = new Array<string>();
+        var tempClz: ClassPrototype | null = classPrototype;
+        var interfaces: string[] = new Array<string>();
         while (tempClz != null) {
-            const implTypes = (<ClassDeclaration>tempClz.declaration).implementsTypes;
+            let implTypes = (<ClassDeclaration>tempClz.declaration).implementsTypes;
             if (implTypes) {
-                for (const type of implTypes) {
+                for (let type of implTypes) {
                     interfaces.push(type.name.range.toString());
                 }
             }
@@ -116,7 +114,7 @@ export class ElementUtil {
      */
     static isActionFuncPrototype(element: Element): boolean {
         if (element.kind == ElementKind.FUNCTION_PROTOTYPE) {
-            const funcType = <FunctionPrototype>element;
+            let funcType = <FunctionPrototype>element;
             return AstUtil.hasSpecifyDecorator(funcType.declaration, ContractDecoratorKind.ACTION);
         }
         return false;
@@ -124,7 +122,7 @@ export class ElementUtil {
 
     static isPrimaryFuncPrototype(element: Element): boolean {
         if (element.kind == ElementKind.PROPERTY_PROTOTYPE) {
-            const funcType = <PropertyPrototype>element;
+            let funcType = <PropertyPrototype>element;
             return AstUtil.hasSpecifyDecorator(funcType.declaration, ContractDecoratorKind.PRIMARY);
         }
         return false;
@@ -132,7 +130,7 @@ export class ElementUtil {
 
     static isSecondaryFuncPrototype(element: Element): boolean {
         if (element.kind == ElementKind.PROPERTY_PROTOTYPE) {
-            const funcType = <PropertyPrototype>element;
+            let funcType = <PropertyPrototype>element;
             return AstUtil.hasSpecifyDecorator(funcType.declaration, ContractDecoratorKind.SECONDARY);
         }
         return false;
@@ -150,7 +148,7 @@ export class AstUtil {
         } else if (expression.kind == NodeKind.BINARY) {
             return (<BinaryExpression>expression).left.range.toString();
         } else if (expression.kind == NodeKind.LITERAL) {
-            const literal = <LiteralExpression>expression;
+            let literal = <LiteralExpression>expression;
             if (literal.literalKind == LiteralKind.STRING) {
                 return (<StringLiteralExpression>literal).value;
             }
@@ -178,7 +176,7 @@ export class AstUtil {
 
     static getSpecifyDecorator(statement: DeclarationStatement, kind: ContractDecoratorKind): DecoratorNode | null {
         if (statement.decorators) {
-            for (const decorator of statement.decorators) {
+            for (let decorator of statement.decorators) {
                 if (DecoratorUtil.isDecoratorKind(decorator, kind)) {
                     return decorator;
                 }
@@ -193,14 +191,14 @@ export class AstUtil {
        * @param declareType
        */
     static getArrayTypeArgument(declareType: string): string {
-        let bracketIndex = declareType.indexOf("[");
+        var bracketIndex = declareType.indexOf("[");
         if (bracketIndex != -1) {
-            const index = declareType.indexOf(" ") == -1 ? bracketIndex : declareType.indexOf(" ");
+            let index = declareType.indexOf(" ") == -1 ? bracketIndex : declareType.indexOf(" ");
             return declareType.substring(0, index);
         }
         bracketIndex = declareType.indexOf("<");
         if (bracketIndex != -1) {
-            const endIndex = declareType.indexOf(">");
+            let endIndex = declareType.indexOf(">");
             return declareType.substring(bracketIndex + 1, endIndex);
         }
         return declareType;
@@ -248,7 +246,7 @@ export class DecoratorUtil {
     }
 
     static containDecorator(decorators: DecoratorNode[], kind: ContractDecoratorKind): boolean {
-        for (const decorator of decorators) {
+        for (let decorator of decorators) {
             if (getCustomDecoratorKind(decorator) == kind) {
                 return true;
             }
@@ -259,7 +257,7 @@ export class DecoratorUtil {
     public static checkSelecrot(decorator: DecoratorNode, selector: string): void {
         let isLegal = false;
         if (selector) {
-            const re = /0x[0-9A-Fa-f]{8}/g;
+            var re = /0x[0-9A-Fa-f]{8}/g;
             if (re.test(selector)) {
                 isLegal = true;
             }
@@ -270,7 +268,7 @@ export class DecoratorUtil {
     }
 
     public static checkMutates(decorator: DecoratorNode, val: string): void {
-        const isLegal = (val == 'false');
+        let isLegal = (val == 'false');
         if (!isLegal) {
             throw new Error(`Decorator: ${decorator.name.range.toString()} argument mutates value should be false. Trace: ${RangeUtil.location(decorator.range)} `);
         }
@@ -286,7 +284,7 @@ export class EosioUtils {
     public static arrayToHex = (data: Uint8Array): string => {
         let result = '';
         for (let i=0; i<data.length; i++) {
-            const x = data[i];
+            let x = data[i];
             result += ('00' + x.toString(16)).slice(-2);
         }
         return result.toUpperCase();
@@ -295,14 +293,14 @@ export class EosioUtils {
     public static arrayToHexReverse = (data: Uint8Array): string => {
         let result = '';
         for (let i=data.length-1; i>=0; i--) {
-            const x = data[i];
+            let x = data[i];
             result += ('00' + x.toString(16)).slice(-2);
         }
         return result.toUpperCase();
     };
 
     public static nameToHexString(s: string): string {
-        const name = this.nameToBytes(s);
+        let name = this.nameToBytes(s);
         return '0x' + this.arrayToHexReverse(name);
     }
 

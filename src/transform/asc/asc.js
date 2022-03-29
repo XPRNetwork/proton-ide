@@ -1,6 +1,3 @@
-// @ts-nocheck
-/* eslint-disable */
-
 /**
  * @license
  * Copyright 2020 Daniel Wirtz / The AssemblyScript Authors.

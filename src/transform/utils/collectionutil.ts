@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 export class Collections {
     /**
      * Check the array is empty
@@ -10,7 +8,7 @@ export class Collections {
     }
 
     static newArray<T>(arg1: T): T[] {
-        const arr = new Array<T>();
+        var arr = new Array<T>();
         arr.push(arg1);
         return arr;
     }

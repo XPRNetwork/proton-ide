@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import {
     NamedTypeNode,
     NodeKind,
@@ -91,9 +89,9 @@ export class NamedTypeNodeDef extends BaseNamedTypeDef {
 
     // TODO
     public genTypeSequence(definedTypeMap: Map<string, NamedTypeNodeDef>): void {
-        const typeName = this.getTypeKey();
+        let typeName = this.getTypeKey();
         if (definedTypeMap.has(typeName)) {
-            const typeDef = definedTypeMap.get(typeName);
+            let typeDef = definedTypeMap.get(typeName);
             this.index = typeDef!.index;
         } else {
             this.index = definedTypeMap.size + 1;
@@ -115,7 +113,7 @@ export class NamedTypeNodeDef extends BaseNamedTypeDef {
      * @returns 
      */
     private resolveClassType(clzPrototype: ClassPrototype, typeMap: Map<string, NamedTypeNodeDef>): boolean {
-        const interpreter = new ClassInterpreter(clzPrototype);
+        let interpreter = new ClassInterpreter(clzPrototype);
         interpreter.resolveFieldMembers();
         if (clzPrototype.name === 'AccountId') {
             interpreter.fields.forEach(item => {
@@ -135,7 +133,7 @@ export class NamedTypeNodeDef extends BaseNamedTypeDef {
 
     private getCurrentElement(): Element {
         this.plainType = TypeHelper.renameArrayType(this.plainType);
-        const element = this.parent.lookup(this.plainType)!;
+        let element = this.parent.lookup(this.plainType)!;
         if (element) {
             return this.findBuildinElement(element);
         }
@@ -153,21 +151,21 @@ export class NamedTypeNodeDef extends BaseNamedTypeDef {
             }
             // TODO 
             console.log(`type info: ${buildinElement.name}`);
-            const declaration = <TypeDeclaration>(<TypeDefinition>buildinElement).declaration;
-            const definitionNode = <NamedTypeNode>declaration.type;
+            let declaration = <TypeDeclaration>(<TypeDefinition>buildinElement).declaration;
+            let definitionNode = <NamedTypeNode>declaration.type;
             // console.log(`TYPEDEFINITION ${definitionNode.range.toString()},  ${buildinElement.name}`);
-            const name = definitionNode.name.range.toString();
-            const type = TypeHelper.getTypeKindByName(name);
+            let name = definitionNode.name.range.toString();
+            let type = TypeHelper.getTypeKindByName(name);
 
             return new NodeTypeInfo(type);
 
         } else if (buildinElement.kind == ElementKind.CLASS_PROTOTYPE) {
-            const type = TypeHelper.getTypeKindFromUnCodec(buildinElement.name);
+            let type = TypeHelper.getTypeKindFromUnCodec(buildinElement.name);
             if (type) {
                 return new NodeTypeInfo(type);
 
             }
-            const classTypeKind = TypeHelper.getTypeKindByName(buildinElement.name);
+            let classTypeKind = TypeHelper.getTypeKindByName(buildinElement.name);
             if (classTypeKind == TypeKindEnum.USER_CLASS) {
                 return new NodeTypeInfo(classTypeKind);
 
@@ -196,7 +194,7 @@ export class NamedTypeNodeDef extends BaseNamedTypeDef {
         // }
         // console.log(`buildinElement: ${buildinElement.name}`);
         // console.log(`Element ${ElementKind[buildinElement.kind]}, ${buildinElement.name}, ${this.plainType}`);
-        const element = this.current;
+        let element = this.current;
         if (!element) {
             return TypeKindEnum.VOID;
         }
@@ -210,17 +208,17 @@ export class NamedTypeNodeDef extends BaseNamedTypeDef {
                 return TypeKindEnum.NUMBER;
             }
             // TODO
-            const declaration = <TypeDeclaration>(<TypeDefinition>element).declaration;
-            const definitionNode = <NamedTypeNode>declaration.type;
+            let declaration = <TypeDeclaration>(<TypeDefinition>element).declaration;
+            let definitionNode = <NamedTypeNode>declaration.type;
             // console.log(`TYPEDEFINITION ${definitionNode.range.toString()},  ${buildinElement.name}`);
-            const name = definitionNode.name.range.toString();
+            let name = definitionNode.name.range.toString();
             return TypeHelper.getTypeKindByName(name);
         } else if (element.kind == ElementKind.CLASS_PROTOTYPE) {
-            const type = TypeHelper.getTypeKindFromUnCodec(element.name);
+            let type = TypeHelper.getTypeKindFromUnCodec(element.name);
             if (type) {
                 return type;
             }
-            const classTypeKind = TypeHelper.getTypeKindByName(element.name);
+            let classTypeKind = TypeHelper.getTypeKindByName(element.name);
             // if (classTypeKind == TypeKindEnum.USER_CLASS) {
             // }
             return classTypeKind;
@@ -237,10 +235,10 @@ export class NamedTypeNodeDef extends BaseNamedTypeDef {
     private findBuildinElement(element: Element): Element {
         // console.log(`element: ${element.name}, ${ElementKind[element.kind]}`);
         if (element && element.kind == ElementKind.TYPEDEFINITION) {
-            const defineElement = <TypeDefinition>element;
-            const aliasTypeName = defineElement.typeNode.range.toString();
+            let defineElement = <TypeDefinition>element;
+            let aliasTypeName = defineElement.typeNode.range.toString();
             // console.log(`aliasTypeName: ${aliasTypeName}`);
-            const defineType = this.parent.lookup(aliasTypeName);
+            let defineType = this.parent.lookup(aliasTypeName);
             if (defineType) {
                 return this.findBuildinElement(defineType);
             }
@@ -252,11 +250,11 @@ export class NamedTypeNodeDef extends BaseNamedTypeDef {
      * Argument maybe also generic.
      */
     private resolveArguments(): void {
-        const args = this.typeNode.typeArguments;
+        var args = this.typeNode.typeArguments;
         if (args) {
-            for (const arg of args) {
+            for (let arg of args) {
                 if (arg.kind == NodeKind.NAMEDTYPE) {
-                    const argumentTypeNode: NamedTypeNodeDef = new NamedTypeNodeDef(this.parent, <NamedTypeNode>arg);
+                    let argumentTypeNode: NamedTypeNodeDef = new NamedTypeNodeDef(this.parent, <NamedTypeNode>arg);
                     this.typeArguments.push(argumentTypeNode);
                 }
             }
