@@ -3,16 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "NODE_OPTIONS=–-max_old_space_size=16384 npx vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "as-bignum": "^0.2.18",
+    "as-chain": "^0.0.16",
+    "assemblyscript": "^0.20.2",
     "core-js": "^3.8.3",
+    "handlebars": "^4.7.7",
+    "monaco-editor": "^0.20.0",
+    "ts-dedent": "^2.2.0",
     "vue": "^3.2.13",
-    "vue-class-component": "^8.0.0-0"
+    "vue-class-component": "^8.0.0-0",
+    "vue-monaco": "^1.2.2"
   },
   "devDependencies": {
+    "@babel/plugin-syntax-top-level-await": "^7.14.5",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "@vue/cli-plugin-babel": "~5.0.0",
@@ -20,9 +28,17 @@
     "@vue/cli-plugin-typescript": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
     "@vue/eslint-config-typescript": "^9.1.0",
+    "browserify-fs": "^1.0.0",
+    "buffer-browserify": "^0.2.5",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
-    "typescript": "~4.5.5"
+    "monaco-editor-webpack-plugin": "^1.9.1",
+    "path-browserify": "^1.0.1",
+    "process": "^0.11.10",
+    "stream-browserify": "^3.0.0",
+    "typescript": "~4.5.5",
+    "url": "^0.11.0",
+    "util": "^0.12.4"
   },
   "eslintConfig": {
     "root": true,
@@ -37,12 +53,19 @@
     "parserOptions": {
       "ecmaVersion": 2020
     },
-    "rules": {}
+    "rules": {
+      "@typescript-eslint/ban-ts-comment": 0
+    }
   },
   "browserslist": [
     "> 1%",
     "last 2 versions",
     "not dead",
     "not ie 11"
-  ]
+  ],
+  "resolutions": {
+    "monaco-editor": "0.20.0",
+    "monaco-editor-webpack-plugin": "1.9.1",
+    "vue-monaco/monaco-editor": "0.20.0"
+  }
 }

@@ -1,0 +1,598 @@
+<template>
+<div>
+  <div id="header">
+    <h1>AssemblyScript Editor</h1>
+    <p><a href="introduction.html" target="_blank" rel="noopener">Language documentation</a></p>
+  </div>
+  <div v-if="loading" id="loading">
+
+  </div>
+  <div id="buttons">
+    <a class="button share" title="Copy shareable Link">🔗</a>
+    <a class="button options" title="Compiler Options">⚙️</a>
+  </div>
+
+  <div id="clipboard" class="popup">
+    Shareable link copied to clipboard.
+  </div>
+
+  <div id="tabs">
+    <a id="sourceTab" class="tab source active" title="AssemblyScript source code">module.ts</a>
+    <a id="binaryTab" class="tab binary" title="Click to Compile">module.wat</a>
+    <a id="htmlTab" class="tab html" title="JavaScript host code">index.html</a>
+    <a id="playTab" class="tab play" title="Click to Compile & Run">Run</a>
+  </div>
+
+  <div id="panes">
+    <div id="source" class="pane source active" aria-labelledby="sourceTab"></div>
+    <div id="binary" class="pane binary" aria-labelledby="binaryTab"></div>
+    <div id="html" class="pane html" aria-labelledby="htmlTab"></div>
+    <div id="play" class="pane play" aria-labelledby="htmlTab">
+      <iframe
+        id="play-frame"
+        title="Play frame"
+        src="data:text/html;base64,"
+        sandbox="allow-scripts allow-pointer-lock"
+        ref="playFrame"
+      ></iframe>
+    </div>
+  </div>
+    <input type="text" id="clipboardHelper" aria-hidden="true" />
+
+    <MonacoEditor
+      class="editor"
+      v-model="code"
+      :value="code"
+      @editorDidMount="editorDidMount"
+      ref="editor"
+    />
+  </div>
+</template>
+
+<script lang="ts">
+import asc from "assemblyscript/asc";
+import { ContractTransform } from "./transform";
+import { config as watLanguageConfig, tokens as watLanguageTokens } from './wat'
+import MonacoEditor from 'vue-monaco'
+import { h, defineComponent } from 'vue'
+
+import asChainIndex from 'as-chain/assembly/index.ts?assembly'
+import asChainAction from 'as-chain/assembly/action.ts?assembly'
+import asChainAsset from 'as-chain/assembly/asset.ts?assembly'
+import asChainBignum from 'as-chain/assembly/bignum.ts?assembly'
+import asChainCrypto from 'as-chain/assembly/crypto.ts?assembly'
+import asChainDbi64 from 'as-chain/assembly/dbi64.ts?assembly'
+import asChainDebug from 'as-chain/assembly/debug.ts?assembly'
+import asChainDecorator from 'as-chain/assembly/decorator.ts?assembly'
+import asChainEnv from 'as-chain/assembly/env.ts?assembly'
+import asChainFloat128 from 'as-chain/assembly/float128.ts?assembly'
+import asChainHelpers from 'as-chain/assembly/helpers.ts?assembly'
+import asChainIdx64 from 'as-chain/assembly/idx64.ts?assembly'
+import asChainIdx128 from 'as-chain/assembly/idx128.ts?assembly'
+import asChainIdx256 from 'as-chain/assembly/idx256.ts?assembly'
+import asChainIdxdb from 'as-chain/assembly/idxdb.ts?assembly'
+import asChainIdxf64 from 'as-chain/assembly/idxf64.ts?assembly'
+import asChainIdxf128 from 'as-chain/assembly/idxf128.ts?assembly'
+import asChainMi from 'as-chain/assembly/mi.ts?assembly'
+import asChainName from 'as-chain/assembly/name.ts?assembly'
+import asChainSerializer from 'as-chain/assembly/serializer.ts?assembly'
+import asChainSingleton from 'as-chain/assembly/singleton.ts?assembly'
+import asChainSystem from 'as-chain/assembly/system.ts?assembly'
+import asChainTime from 'as-chain/assembly/time.ts?assembly'
+import asChainTransaction from 'as-chain/assembly/transaction.ts?assembly'
+import asChainUtils from 'as-chain/assembly/utils.ts?assembly'
+import asChainVarint from 'as-chain/assembly/varint.ts?assembly'
+
+import asBignumIndex from 'as-bignum/assembly/index.ts?assembly'
+import asBignumUtils from 'as-bignum/assembly/utils.ts?assembly'
+import asBignumGlobals from 'as-bignum/assembly/globals.ts?assembly'
+import asBignumIntegerIndex from 'as-bignum/assembly/integer/index.ts?assembly'
+import asBignumIntegeri128 from 'as-bignum/assembly/integer/i128.ts?assembly'
+import asBignumIntegeru128 from 'as-bignum/assembly/integer/u128.ts?assembly'
+import asBignumIntegeri256 from 'as-bignum/assembly/integer/i256.ts?assembly'
+import asBignumIntegeru256 from 'as-bignum/assembly/integer/u256.ts?assembly'
+import asBignumIntegerSafeIndex from 'as-bignum/assembly/integer/safe/index.ts?assembly'
+import asBignumIntegerSafei64 from 'as-bignum/assembly/integer/safe/i64.ts?assembly'
+import asBignumIntegerSafei128 from 'as-bignum/assembly/integer/safe/i128.ts?assembly'
+import asBignumIntegerSafei256 from 'as-bignum/assembly/integer/safe/i256.ts?assembly'
+import asBignumIntegerSafeu64 from 'as-bignum/assembly/integer/safe/u64.ts?assembly'
+import asBignumIntegerSafeu128 from 'as-bignum/assembly/integer/safe/u128.ts?assembly'
+import asBignumIntegerSafeu256 from 'as-bignum/assembly/integer/safe/u256.ts?assembly'
+
+
+MonacoEditor.render = () => h('div')
+
+const MONACO_EDITOR_FONT = 'JetBrains Mono'
+
+let sourceEditor = undefined as any
+let binaryEditor = undefined as any
+
+export default defineComponent({
+  name: 'editor-view',
+  components: {
+    MonacoEditor
+  },
+
+  data () {
+    return {
+      code: '',
+      loading: false,
+
+      // Options
+      optionUseRe: /^(\w+)=(\w+(\/\w+|\.\w+)*)$/,
+      module_wat: '(module)\n',
+      module_wasm: new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]),
+      module_js: '\n',
+      didCompile: false,
+    }
+  },
+
+  methods: {
+    async editorDidMount() {
+      const monaco = (this.$refs as any).editor.monaco
+
+      // Add WebAssembly Text Format language
+      monaco.languages.register({ id: 'wat' })
+      monaco.languages.setLanguageConfiguration('wat', watLanguageConfig)
+      monaco.languages.setMonarchTokensProvider('wat', watLanguageTokens)
+
+      // Extend the default theme with WebAssembly rules
+      monaco.editor.defineTheme('vs-wasm', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [
+          // Common
+          { token: 'number', foreground: 'ffc37a' },
+          { token: 'comment', foreground: '595959', fontStyle: 'italic' },
+          // WebAssembly
+          { token: 'instruction', foreground: 'dcdcaa' },
+          { token: 'controlInstruction', foreground: 'c586c0' },
+          { token: 'identifier', foreground: '9cdcf0' },
+          // TypeScript (reset)
+          { token: 'identifier.ts', foreground: 'd4d4d4' },
+          // Diagnostics
+          { token: 'error', foreground: 'd16969' },
+          { token: 'warning', foreground: 'dcdcaa' },
+          { token: 'info', foreground: '11a8cd' },
+          { token: 'pedantic', foreground: 'c586c0' },
+          { token: 'underline', foreground: 'd16969' }
+        ],
+        colors: {
+          'scrollbar.shadow': '#1e1e1eff',
+          'editorLineNumber.foreground': '#444444',
+          'editorLineNumber.activeForeground': '#888888'
+        }
+      })
+
+      // Add AssemblyScript Standard Library definition
+      monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+        target: monaco.languages.typescript.ScriptTarget.ES2015,
+        experimentalDecorators: true,
+        allowNonTsExtensions: true
+      });
+
+      monaco.languages.typescript.typescriptDefaults.addExtraLib(
+        asc.definitionFiles.assembly,
+        "assemblyscript/std/assembly/index.d.ts"
+      )
+
+      // Waiting for EDITOR_FONT to load before set it in editor
+      // await document.fonts.load(`2em ${MONACO_EDITOR_FONT}`)
+
+      // Obtain the source provided via the location's hash
+      let source = document.location.hash
+      let html = ''
+      if (source.length > 1) {
+        source = source.substr(1)
+        try {
+          source = atob(source)
+        } catch (e: any) {
+          source = `/* ${e.message} */`
+        }
+        if (source.startsWith('#!') && !source.startsWith('#!html')) {
+          let end = source.indexOf('\n')
+          if (!end) end = source.length
+          // this.deserializeCompilerOptions(source.substring(2, end))
+          source = source.substring(end + 1)
+        }
+        const htmlMatch = /^#!html$/m.exec(source)
+        if (htmlMatch) {
+          html = source.substring(htmlMatch.index + htmlMatch[0].length).trim() + '\n'
+          source = source.substring(0, htmlMatch.index).trimRight() + '\n'
+        }
+      } else {
+        source = ''
+      }
+
+      // Common editor options
+      const commonEditorOptions = {
+        value: '',
+        theme: 'vs-wasm',
+        automaticLayout: true,
+        scrollBeyondLastLine: false,
+        tabSize: 2,
+        fontSize: 18,
+        fontFamily: MONACO_EDITOR_FONT,
+        fontLigatures: true,
+        padding: {
+          bottom: 18,
+          top: 18
+        },
+        scrollbar: {
+          alwaysConsumeMouseWheel: false
+        },
+        minimap: {
+          enabled: false
+        },
+        matchBrackets: 'near',
+        renderLineHighlight: 'none',
+        cursorStyle: 'line-thin',
+        cursorBlinking: 'smooth'
+      }
+
+      // Get panes
+      const sourcePane = document.getElementById('source')
+      const binaryPane = document.getElementById('binary')
+      const htmlPane = document.getElementById('html')
+
+      // Create editor panes
+      const sourceModel = monaco.editor.createModel(source, 'typescript')
+      sourceEditor = monaco.editor.create(sourcePane, Object.assign({}, commonEditorOptions, {
+        model: sourceModel,
+      }))
+      const binaryModel = monaco.editor.createModel('(module\n 🚀\n)\n', 'wat')
+      binaryModel.updateOptions({ tabSize: 1 })
+      binaryEditor = monaco.editor.create(binaryPane, Object.assign({}, commonEditorOptions, {
+        model: binaryModel,
+        readOnly: true
+      }))
+      const htmlModel = monaco.editor.createModel(html, 'html')
+      const htmlEditor = monaco.editor.create(htmlPane, Object.assign({}, commonEditorOptions, {
+        model: htmlModel
+      }))
+
+      // Make tabs switchable
+      for (const element of document.querySelectorAll('.tab')) {
+        element.addEventListener('click', async () => {
+          document.querySelectorAll('.tab').forEach(element => element.classList.remove('active'))
+          element.classList.add('active')
+          document.querySelectorAll('.pane').forEach(element => element.classList.remove('active'))
+          const pane = document.getElementById(element.id.substring(0, element.id.length - 3))
+          pane!.classList.add('active')
+          if (element.id == 'binaryTab') {
+            binaryEditor.setValue('(module\n 🚀\n)\n')
+            setTimeout(() => this.compile(), 10)
+          } else if (element.id == 'playTab') {
+            const serialize = () => {
+              return 'data:text/html;base64,' + btoa([
+                '<script>\n',
+                'async function compile() {\n',
+                '  return await WebAssembly.compile(new Uint8Array([', this.module_wasm.join(','), ']));\n',
+                '}\n',
+                this.module_js.replace(/^export async function instantiate\(/m, 'async function instantiate('), '<', '/script>\n\n',
+                htmlEditor.getValue().trimRight()
+              ].join(''))
+            }
+            if (this.didCompile) {
+              (this.$refs as any).playFrame.src = serialize()
+            } else {
+              (this.$refs as any).playFrame.src = 'data:text/html;base64,Q29tcGlsaW5nLi4u'; // Compiling...
+              await this.compile();
+              (this.$refs as any).playFrame.src = serialize();
+            }
+          }
+        })
+      }
+    },
+
+    // Compiles the source to WebAssembly
+    async compile() {
+      const memoryStream = asc.createMemoryStream()
+      const sources: any = {
+        'module.ts': sourceEditor.getValue(),
+        '/node_modules/as-chain/index.ts': asChainIndex,
+        '/node_modules/as-chain/action.ts': asChainAction,
+        '/node_modules/as-chain/asset.ts': asChainAsset,
+        '/node_modules/as-chain/bignum.ts': asChainBignum,
+        '/node_modules/as-chain/crypto.ts': asChainCrypto,
+        '/node_modules/as-chain/dbi64.ts': asChainDbi64,
+        '/node_modules/as-chain/debug.ts': asChainDebug,
+        '/node_modules/as-chain/decorator.ts': asChainDecorator,
+        '/node_modules/as-chain/env.ts': asChainEnv,
+        '/node_modules/as-chain/float128.ts': asChainFloat128,
+        '/node_modules/as-chain/helpers.ts': asChainHelpers,
+        '/node_modules/as-chain/idx64.ts': asChainIdx64,
+        '/node_modules/as-chain/idx128.ts': asChainIdx128,
+        '/node_modules/as-chain/idx256.ts': asChainIdx256,
+        '/node_modules/as-chain/idxdb.ts': asChainIdxdb,
+        '/node_modules/as-chain/idxf64.ts': asChainIdxf64,
+        '/node_modules/as-chain/idxf128.ts': asChainIdxf128,
+        '/node_modules/as-chain/mi.ts': asChainMi,
+        '/node_modules/as-chain/name.ts': asChainName,
+        '/node_modules/as-chain/serializer.ts': asChainSerializer,
+        '/node_modules/as-chain/singleton.ts': asChainSingleton,
+        '/node_modules/as-chain/system.ts': asChainSystem,
+        '/node_modules/as-chain/time.ts': asChainTime,
+        '/node_modules/as-chain/transaction.ts': asChainTransaction,
+        '/node_modules/as-chain/utils.ts': asChainUtils,
+        '/node_modules/as-chain/varint.ts': asChainVarint,
+        '/node_modules/as-bignum/index.ts': asBignumIndex,
+        '/node_modules/as-bignum/utils.ts': asBignumUtils,
+        '/node_modules/as-bignum/globals.ts': asBignumGlobals,
+        '/node_modules/as-bignum/integer/index.ts': asBignumIntegerIndex,
+        '/node_modules/as-bignum/integer/i128.ts': asBignumIntegeri128,
+        '/node_modules/as-bignum/integer/u128.ts': asBignumIntegeru128,
+        '/node_modules/as-bignum/integer/i256.ts': asBignumIntegeri256,
+        '/node_modules/as-bignum/integer/u256.ts': asBignumIntegeru256,
+        '/node_modules/as-bignum/integer/safe/index.ts': asBignumIntegerSafeIndex,
+        '/node_modules/as-bignum/integer/safe/i64.ts': asBignumIntegerSafei64,
+        '/node_modules/as-bignum/integer/safe/i128.ts': asBignumIntegerSafei128,
+        '/node_modules/as-bignum/integer/safe/i256.ts': asBignumIntegerSafei256,
+        '/node_modules/as-bignum/integer/safe/u64.ts': asBignumIntegerSafeu64,
+        '/node_modules/as-bignum/integer/safe/u128.ts': asBignumIntegerSafeu128,
+        '/node_modules/as-bignum/integer/safe/u256.ts': asBignumIntegerSafeu256,
+      }
+
+      const outputs: any = {}
+      const options = [
+        'module.ts',
+        '--initialMemory', '1',
+        '--runtime', 'stub',
+        '--use', 'abort= ',
+        '-O2',
+        '--textFile', 'module.wat',
+        '--outFile', 'module.wasm',
+        '--bindings', 'raw',
+      ]
+
+      const { stdout, error } = await asc.main(options, {
+        checkAll: true,
+        stdout: memoryStream,
+        stderr: memoryStream,
+        readFile: (name: string) => {
+          // alert(name)
+          return Object.prototype.hasOwnProperty.call(sources, name) ? sources[name] : null
+        },
+        writeFile: (name: string, contents: string) => outputs[name] = contents,
+        listFiles: () => [],
+        transforms: [new ContractTransform()]
+      })
+      
+      let output = stdout.toString().trim()
+      if (output.length) {
+        output = ';; ' + output.replace(/\n/g, '\n;; ') + '\n'
+      }
+      output = ';; INFO asc ' + options.join(' ') + '\n' + output
+      if (error) {
+        binaryEditor.setValue(output + `(module\n ;; FAILURE ${error.message}\n)\n`)
+      } else {
+        this.module_wat = outputs['module.wat']
+        this.module_wasm = outputs['module.wasm']
+        this.module_js = outputs['module.js']
+        binaryEditor.setValue(output + this.module_wat)
+      }
+      this.didCompile = true
+
+      return error
+    },
+
+    mounted () {
+      const isIframe = window.parent !== window
+      if (!isIframe) {
+        document.getElementById('header')!.style.display = 'block'
+        document.getElementById('buttons')!.style.paddingRight = '15px'
+        document.querySelectorAll('.pane').forEach((element: any) => {
+          element.style.height = 'calc(100% - 42px - 25px)'
+        })
+      }
+
+      // Intercept scroll event when focused
+      window.addEventListener('wheel', evt => {
+        if (document.hasFocus()) {
+          evt.stopPropagation()
+          evt.preventDefault()
+        }
+      }, { passive: false })
+
+      // Finally, hide the loading animation
+      this.loading = false
+    }
+  }
+})
+</script>
+
+<style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      font-size: 16px;
+      color: #aaa;
+    }
+
+    /* Header (not visible if sandboxed) */
+    #header {
+      display: none;
+      background: #007acc;
+      font-size: 12px;
+      color: #fff;
+      padding: 4px 10px;
+      height: 25px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    #header h1, #header p {
+      margin: 0;
+      padding: 0;
+      font-size: 1em;
+      display: inline-block;
+      padding: 0 5px;
+    }
+    #header a {
+      color: #fff;
+    }
+
+    /* Loading indicator */
+    #loading {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30, 30, 30, 0.8) url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSIjMDA3YWNjIiBkPSJNNzMgNTBjMC0xMi43LTEwLjMtMjMtMjMtMjNTMjcgMzcuMyAyNyA1MG0zLjkgMGMwLTEwLjUgOC41LTE5LjEgMTkuMS0xOS4xUzY5LjEgMzkuNSA2OS4xIDUwIj48YW5pbWF0ZVRyYW5zZm9ybSBhdHRyaWJ1dGVOYW1lPSJ0cmFuc2Zvcm0iIGF0dHJpYnV0ZVR5cGU9IlhNTCIgZHVyPSIxcyIgZnJvbT0iMCA1MCA1MCIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiIHRvPSIzNjAgNTAgNTAiIHR5cGU9InJvdGF0ZSIvPjwvcGF0aD48L3N2Zz4=') center center no-repeat;
+      background-size: 100px 100px;
+      z-index: 9000;
+      user-select: none;
+    }
+
+    /* Editor tabs */
+    #tabs {
+      background: #2d2d2d;
+      padding: 0 10px 0 10px;
+      user-select: none;
+      height: 34px;
+      box-sizing: border-box;
+    }
+    #tabs .tab {
+      display: inline-block;
+      font-size: 0.9rem;
+      font-weight: 300;
+      padding: 8px 16px 8px 34px;
+      background: #2d2d2d;
+      background-size: 20px 20px;
+      background-repeat: no-repeat;
+      background-position: 8px center;
+      display: inline-block;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    #tabs .tab.active {
+      color: #fff;
+      background-color: #1e1e1e;
+    }
+    #tabs .tab.disabled {
+      display: none;
+    }
+    #tabs .tab.source {
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHRpdGxlPmZpbGVfdHlwZV90eXBlc2NyaXB0X29mZmljaWFsPC90aXRsZT48cG9seWdvbiBwb2ludHM9IjIgMTYgMiAzMCAxNiAzMCAzMCAzMCAzMCAxNiAzMCAyIDE2IDIgMiAyIDIgMTYiIHN0eWxlPSJmaWxsOiMwMDdhY2MiLz48cGF0aCBkPSJNMjQuNTY0LDE0Ljg4NGEzLjQ4NSwzLjQ4NSwwLDAsMSwxLjc1MSwxLjAwOSw0LjYxMSw0LjYxMSwwLDAsMSwuNjcxLjljLjAwOS4wMzYtMS4yMDkuODUzLTEuOTQ3LDEuMzExLS4wMjcuMDE4LS4xMzMtLjEtLjI1My0uMjc2YTEuNTg3LDEuNTg3LDAsMCwwLTEuMzE2LS43OTFjLS44NDktLjA1OC0xLjQuMzg3LTEuMzkxLDEuMTI5YTEuMDI3LDEuMDI3LDAsMCwwLC4xMi41MjRjLjE4Ny4zODcuNTMzLjYxOCwxLjYyMiwxLjA4OSwyLC44NjIsMi44NjIsMS40MzEsMy40LDIuMjRhNC4wNjMsNC4wNjMsMCwwLDEsLjMyNCwzLjQxMywzLjc1MywzLjc1MywwLDAsMS0zLjEsMi4yMTgsOC41ODQsOC41ODQsMCwwLDEtMi4xMzMtLjAyMiw1LjE0NSw1LjE0NSwwLDAsMS0yLjg0OS0xLjQ4NCw0Ljk0Nyw0Ljk0NywwLDAsMS0uNzI5LTEuMDgsMi4wOTIsMi4wOTIsMCwwLDEsLjI1OC0uMTY0Yy4xMjQtLjA3MS42LS4zNDIsMS4wNC0uNmwuOC0uNDY3TDIxLDI0LjA4QTMuNzU5LDMuNzU5LDAsMCwwLDIyLjA2NywyNS4xYTIuNiwyLjYsMCwwLDAsMi43MjQtLjEzOCwxLjIxNywxLjIxNywwLDAsMCwuMTU2LTEuNTUxYy0uMjE4LS4zMTEtLjY2Mi0uNTczLTEuOTI0LTEuMTJhNi45Myw2LjkzLDAsMCwxLTIuNjM2LTEuNjIyLDMuNjkyLDMuNjkyLDAsMCwxLS43NjktMS40LDUuNjA2LDUuNjA2LDAsMCwxLS4wNDktMS43ODcsMy40MTMsMy40MTMsMCwwLDEsMi44NzEtMi42NThBNy4wOTIsNy4wOTIsMCwwLDEsMjQuNTY0LDE0Ljg4NFptLTYuNTczLDEuMTY5TDE4LDE3LjJIMTQuMzU2VjI3LjU1NkgxMS43NzhWMTcuMkg4LjEzM1YxNi4wNzZhMTEuMDE4LDExLjAxOCwwLDAsMSwuMDMxLTEuMTU2Yy4wMTMtLjAxOCwyLjIzMS0uMDI3LDQuOTItLjAyMmw0Ljg5My4wMTNaIiBzdHlsZT0iZmlsbDojZmZmIi8+PC9zdmc+');
+    }
+    #tabs .tab.binary {
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHRpdGxlPmZpbGVfdHlwZV93YXNtPC90aXRsZT48cGF0aCBkPSJNMTkuMTUzLDIuMzVWMi41YTMuMiwzLjIsMCwxLDEtNi40LDBoMFYyLjM1SDJWMzAuMjY5SDI5LjkxOVYyLjM1WiIgc3R5bGU9ImZpbGw6IzY1NGZmMCIvPjxwYXRoIGQ9Ik04LjQ4NSwxNy40aDEuODVMMTEuNiwyNC4xMjNoLjAyM0wxMy4xNCwxNy40aDEuNzMxbDEuMzcxLDYuODFoLjAyN2wxLjQ0LTYuODFoMS44MTVsLTIuMzU4LDkuODg1SDE1LjMyOWwtMS4zNi02LjcyOGgtLjAzNmwtMS40NTYsNi43MjhoLTEuODdabTEzLjEyNCwwaDIuOTE3bDIuOSw5Ljg4NUgyNS41MTVsLS42My0yLjJIMjEuNTYybC0uNDg2LDIuMkgxOS4yMTdabTEuMTEsMi40MzctLjgwNywzLjYyN2gyLjUxMkwyMy41LDE5LjgzMloiIHN0eWxlPSJmaWxsOiNmZmYiLz48L3N2Zz4=');
+    }
+    #tabs .tab.html {
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHRpdGxlPmZpbGVfdHlwZV9odG1sPC90aXRsZT48cG9seWdvbiBwb2ludHM9IjUuOTAyIDI3LjIwMSAzLjY1NSAyIDI4LjM0NSAyIDI2LjA5NSAyNy4xOTcgMTUuOTg1IDMwIDUuOTAyIDI3LjIwMSIgc3R5bGU9ImZpbGw6I2U0NGYyNiIvPjxwb2x5Z29uIHBvaW50cz0iMTYgMjcuODU4IDI0LjE3IDI1LjU5MyAyNi4wOTIgNC4wNjEgMTYgNC4wNjEgMTYgMjcuODU4IiBzdHlsZT0iZmlsbDojZjE2NjJhIi8+PHBvbHlnb24gcG9pbnRzPSIxNiAxMy40MDcgMTEuOTEgMTMuNDA3IDExLjYyOCAxMC4yNDIgMTYgMTAuMjQyIDE2IDcuMTUxIDE1Ljk4OSA3LjE1MSA4LjI1IDcuMTUxIDguMzI0IDcuOTgxIDkuMDgzIDE2LjQ5OCAxNiAxNi40OTggMTYgMTMuNDA3IiBzdHlsZT0iZmlsbDojZWJlYmViIi8+PHBvbHlnb24gcG9pbnRzPSIxNiAyMS40MzQgMTUuOTg2IDIxLjQzOCAxMi41NDQgMjAuNTA5IDEyLjMyNCAxOC4wNDQgMTAuNjUxIDE4LjA0NCA5LjIyMSAxOC4wNDQgOS42NTQgMjIuODk2IDE1Ljk4NiAyNC42NTQgMTYgMjQuNjUgMTYgMjEuNDM0IiBzdHlsZT0iZmlsbDojZWJlYmViIi8+PHBvbHlnb24gcG9pbnRzPSIxNS45ODkgMTMuNDA3IDE1Ljk4OSAxNi40OTggMTkuNzk1IDE2LjQ5OCAxOS40MzcgMjAuNTA3IDE1Ljk4OSAyMS40MzcgMTUuOTg5IDI0LjY1MyAyMi4zMjYgMjIuODk2IDIyLjM3MiAyMi4zNzQgMjMuMDk4IDE0LjIzNyAyMy4xNzQgMTMuNDA3IDIyLjM0MSAxMy40MDcgMTUuOTg5IDEzLjQwNyIgc3R5bGU9ImZpbGw6I2ZmZiIvPjxwb2x5Z29uIHBvaW50cz0iMTUuOTg5IDcuMTUxIDE1Ljk4OSA5LjA3MSAxNS45ODkgMTAuMjM1IDE1Ljk4OSAxMC4yNDIgMjMuNDQ1IDEwLjI0MiAyMy40NDUgMTAuMjQyIDIzLjQ1NSAxMC4yNDIgMjMuNTE3IDkuNTQ4IDIzLjY1OCA3Ljk4MSAyMy43MzIgNy4xNTEgMTUuOTg5IDcuMTUxIiBzdHlsZT0iZmlsbDojZmZmIi8+PC9zdmc+');
+    }
+    #tabs .tab.play {
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCI+PHBhdGggZmlsbD0iI2RkZCIgZD0iTTE2IDEwdjI4bDIyLTE0eiIvPjwvc3ZnPg==')
+    }
+
+    /* Editor buttons */
+    #buttons {
+      user-select: none;
+      float: right;
+      padding: 7px 38px 0 0;
+    }
+    #buttons a {
+      color: #fff;
+      padding: 1px 0.2rem;
+      text-align: center;
+      text-decoration: none !important;
+      cursor: pointer;
+      opacity: 0.5;
+    }
+    #buttons a:hover {
+      opacity: 1.0;
+    }
+
+    /* Popups */
+    .popup {
+      position: absolute;
+      background: #3c3c3c;
+      padding: 0.5rem;
+      z-index: 2501;
+      animation: fadeIn 83ms linear;
+      box-shadow: 0 3px 3px 1px rgba(0,0,0,0.3);
+      display: none;
+      font-size: 0.8rem;
+      user-select: none;
+    }
+    .popup:before {
+      content: "";
+      position: absolute;
+      top: -24px;
+      right: 0;
+      border: solid 12px transparent;
+      border-bottom-color: #3c3c3c;
+      z-index: 2502;
+      pointer-events: none;
+    }
+
+    /* Options */
+    #options .columns {
+      display: flex;
+    }
+    #options .column {
+      width: 50%;
+    }
+    #options h5 {
+      padding: 5px 0;
+      margin: 0;
+      color: #aaa;
+      font-size: 0.85em;
+    }
+    #options p {
+      margin: 0;
+      padding: 0.2em 0;
+      color: #eee;
+      font-size: 0.95em;
+    }
+    #options p:first-child {
+      padding-top: 0;
+    }
+    #options a {
+      color: #fff;
+    }
+    #options label {
+      position: relative;
+      top: -2px;
+      cursor: pointer;
+    }
+    #options input {
+      box-sizing: border-box;
+    }
+    #options input[type="number"] {
+      width: calc(50% - 6px);
+      margin-left: 3px;
+    }
+    #options input[type="text"] {
+      width: calc(100% - 6px);
+      margin-left: 3px;
+    }
+
+    /* Editor panes */
+    .pane {
+      position: absolute;
+      width: 100%;
+      height: calc(100% - 34px);
+      z-index: 0;
+      background: #1e1e1e;
+    }
+    .pane.active {
+      z-index: 1;
+    }
+    .pane.play iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #fff;
+    }
+
+    #clipboardHelper {
+      position: absolute;
+      z-index: 0;
+      width: 100%;
+      opacity: 0;
+    }
+  </style>
