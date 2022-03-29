@@ -1,0 +1,1205 @@
+declare module 'as-chain/assembly/action' {
+    /// <reference types="assembly" />
+    import { Packer } from "as-chain/assembly/serializer";
+    import { Name } from "as-chain/assembly/name";
+    export function getSender(): Name;
+    export function readActionData(): u8[];
+    export function unpackActionData<T extends Packer>(): T;
+    export function actionDataSize(): u32;
+    export function requireRecipient(name: Name): void;
+    export function requireAuth(name: Name): void;
+    export function hasAuth(name: Name): bool;
+    export function requireAuth2(permissionLevel: PermissionLevel): void;
+    export function isAccount(name: Name): bool;
+    export function publicationTime(): u64;
+    export function currentReceiver(): Name;
+    export class PermissionLevel implements Packer {
+        actor: Name;
+        permission: Name;
+        constructor(actor?: Name, permission?: Name);
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+    }
+    export class Action implements Packer {
+        authorization: PermissionLevel[];
+        account: Name;
+        name: Name;
+        data: u8[];
+        constructor(authorization?: PermissionLevel[], account?: Name, name?: Name, data?: u8[]);
+        static new(authorization: PermissionLevel[], account: Name, name: Name, packer: Packer): Action;
+        send(): void;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+    }
+  
+  }
+  declare module 'as-chain/assembly/asset' {
+    /// <reference types="assembly" />
+    import { Packer } from "as-chain/assembly/serializer";
+    import { Name } from "as-chain/assembly/name";
+    export function isValid(sym: u64): bool;
+    export class Symbol implements Packer {
+        value: u64;
+        constructor(name?: string, precision?: u8);
+        static fromU64(value: u64): Symbol;
+        fromU64(value: u64): Symbol;
+        precision(): u8;
+        isValid(): bool;
+        code(): u64;
+        raw(): u64;
+        getSymbolString(): string;
+        toString(): string;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static eq(a: Symbol, b: Symbol): bool;
+        static neq(a: Symbol, b: Symbol): bool;
+        static lt(a: Symbol, b: Symbol): bool;
+    }
+    export class ExtendedSymbol implements Packer {
+        sym: Symbol;
+        contract: Name;
+        constructor(sym?: Symbol, contract?: Name);
+        toString(): string;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static eq(a: ExtendedSymbol, b: ExtendedSymbol): bool;
+        static neq(a: ExtendedSymbol, b: ExtendedSymbol): bool;
+        static lt(a: ExtendedSymbol, b: ExtendedSymbol): bool;
+    }
+    export class Asset implements Packer {
+        amount: i64;
+        symbol: Symbol;
+        constructor(amount?: i64, symbol?: Symbol);
+        isAmountWithinRange(): bool;
+        isValid(): bool;
+        toString(): string;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static add(a: Asset, b: Asset): Asset;
+        static sub(a: Asset, b: Asset): Asset;
+        static mul(a: Asset, b: Asset): Asset;
+        static div(a: Asset, b: Asset): Asset;
+        static eq(a: Asset, b: Asset): bool;
+        static ne(a: Asset, b: Asset): bool;
+        static lt(a: Asset, b: Asset): bool;
+        static gt(a: Asset, b: Asset): bool;
+        static lte(a: Asset, b: Asset): bool;
+        static gte(a: Asset, b: Asset): bool;
+    }
+    export class ExtendedAsset implements Packer {
+        quantity: Asset;
+        contract: Name;
+        constructor(quantity?: Asset, contract?: Name);
+        static fromInteger(v: i64, s: ExtendedSymbol): ExtendedAsset;
+        getExtendedSymbol(): ExtendedSymbol;
+        toString(): string;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static sub(a: ExtendedAsset, b: ExtendedAsset): ExtendedAsset;
+        static add(a: ExtendedAsset, b: ExtendedAsset): ExtendedAsset;
+        static lt(a: ExtendedAsset, b: ExtendedAsset): bool;
+        static gt(a: ExtendedAsset, b: ExtendedAsset): bool;
+        static eq(a: ExtendedAsset, b: ExtendedAsset): bool;
+        static ne(a: ExtendedAsset, b: ExtendedAsset): bool;
+        static lte(a: ExtendedAsset, b: ExtendedAsset): bool;
+        static gte(a: ExtendedAsset, b: ExtendedAsset): bool;
+    }
+  
+  }
+  declare module 'as-chain/assembly/bignum' {
+    /// <reference types="assembly" />
+    import { i128, u128, u256 } from "as-bignum";
+    import { Packer } from "as-chain/assembly/serializer";
+    export class I128 extends i128 implements Packer {
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+    }
+    export class U128 extends u128 implements Packer {
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static add(a: U128, b: U128): U128;
+        static sub(a: U128, b: U128): U128;
+        static mul(a: U128, b: U128): U128;
+        static div(a: U128, b: U128): U128;
+        static rem(a: U128, b: U128): U128;
+    }
+    export class U256 extends u256 implements Packer {
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+    }
+  
+  }
+  declare module 'as-chain/assembly/crypto' {
+    /// <reference types="assembly" />
+    import { Packer } from "as-chain/assembly/serializer";
+    export class Checksum160 implements Packer {
+        data: u8[];
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        toString(): string;
+        static eq(a: Checksum160, b: Checksum160): bool;
+        static neq(a: Checksum160, b: Checksum160): bool;
+    }
+    export class Checksum256 implements Packer {
+        data: u8[];
+        constructor(data?: u8[] | null);
+        assign(value: u8[]): void;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        toString(): string;
+        static eq(a: Checksum256, b: Checksum256): bool;
+        static neq(a: Checksum256, b: Checksum256): bool;
+    }
+    export class Checksum512 implements Packer {
+        data: u8[];
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        toString(): string;
+        static eq(a: Checksum512, b: Checksum512): bool;
+        static neq(a: Checksum512, b: Checksum512): bool;
+    }
+    export class ECCPublicKey implements Packer {
+        data: Array<u8> | null;
+        constructor(data?: u8[] | null);
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        toString(): string;
+        static eq(a: ECCPublicKey, b: ECCPublicKey): bool;
+        static neq(a: ECCPublicKey, b: ECCPublicKey): bool;
+        static gt(a: ECCPublicKey, b: ECCPublicKey): bool;
+        static lt(a: ECCPublicKey, b: ECCPublicKey): bool;
+    }
+    export enum UserPresence {
+        USER_PRESENCE_NONE = 0,
+        USER_PRESENCE_PRESENT = 1,
+        USER_PRESENCE_VERIFIED = 2
+    }
+    export class WebAuthNPublicKey implements Packer {
+        key: ECCPublicKey | null;
+        userPresence: UserPresence;
+        rpid: string;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static eq(a: WebAuthNPublicKey, b: WebAuthNPublicKey): bool;
+        static neq(a: WebAuthNPublicKey, b: WebAuthNPublicKey): bool;
+        static gt(a: WebAuthNPublicKey, b: WebAuthNPublicKey): bool;
+        static lt(a: WebAuthNPublicKey, b: WebAuthNPublicKey): bool;
+    }
+    export enum PublicKeyType {
+        K1 = 0,
+        R1 = 1,
+        WebAuthN = 2
+    }
+    export class PublicKey implements Packer {
+        keyType: PublicKeyType;
+        k1: ECCPublicKey | null;
+        r1: ECCPublicKey | null;
+        webAuthN: WebAuthNPublicKey | null;
+        constructor(keyType?: PublicKeyType, data?: u8[] | null);
+        toString(): string;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static eq(a: PublicKey, b: PublicKey): bool;
+        static neq(a: PublicKey, b: PublicKey): bool;
+        static gt(a: PublicKey, b: PublicKey): bool;
+        static lt(a: PublicKey, b: PublicKey): bool;
+    }
+    export class Signature implements Packer {
+        data: u8[];
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        toString(): string;
+        static eq(a: Signature, b: Signature): bool;
+        static neq(a: Signature, b: Signature): bool;
+    }
+    export function recoverKey(digest: Checksum256, sig: Signature): PublicKey;
+    export function assertRecoverKey(digest: Checksum256, sig: Signature, pub: PublicKey): void;
+    export function assertSha256(data: u8[], hash: Checksum256): void;
+    export function assertSha1(data: u8[], hash: Checksum160): void;
+    export function assertSha512(data: u8[], hash: Checksum512): void;
+    export function assertRipemd160(data: u8[], hash: Checksum160): void;
+    export function sha256(data: u8[]): Checksum256;
+    export function sha1(data: u8[]): Checksum160;
+    export function sha512(data: u8[]): Checksum512;
+    export function ripemd160(data: u8[]): Checksum160;
+  
+  }
+  declare module 'as-chain/assembly/dbi64' {
+    /// <reference types="assembly" />
+    import { Packer } from "as-chain/assembly/serializer";
+    export function say_hello(): void;
+    export interface PrimaryValue extends Packer {
+        getPrimaryValue(): u64;
+    }
+    export const UNKNOWN_PRIMARY_KEY: u64;
+    export class PrimaryIterator {
+        i: i32;
+        primary: u64;
+        constructor(i: i32, primary: u64);
+        isOk(): bool;
+        isEnd(): bool;
+    }
+    export class DBI64 {
+        code: u64;
+        scope: u64;
+        table: u64;
+        constructor(code: u64, scope: u64, table: u64);
+        store(id: u64, data: u8[], payer: u64): PrimaryIterator;
+        update(iterator: PrimaryIterator, payer: u64, data: u8[]): void;
+        remove(iterator: i32): void;
+        get(iterator: PrimaryIterator): u8[];
+        next(iterator: i32): PrimaryIterator;
+        previous(iterator: i32): PrimaryIterator;
+        find(id: u64): PrimaryIterator;
+        lowerBound(id: u64): PrimaryIterator;
+        upperBound(id: u64): PrimaryIterator;
+        end(): PrimaryIterator;
+    }
+  
+  }
+  declare module 'as-chain/assembly/debug' {
+    /// <reference types="assembly" />
+    import { I128, U128 } from "as-chain/assembly/bignum";
+    import { Float128 } from "as-chain/assembly/float128";
+    import { Name } from "as-chain/assembly/name";
+    export function printui(n: u64): void;
+    export function prints(s: string): void;
+    export function printi(n: i64): void;
+    export function printString(s: string): void;
+    export function print(s: string): void;
+    export function printArray(data: u8[]): void;
+    export function printHex(data: u8[]): void;
+    export function printI128(value: I128): void;
+    export function printU128(value: U128): void;
+    export function printsf(value: f32): void;
+    export function printdf(value: f64): void;
+    export function printqf(value: Float128): void;
+    export function printn(name: Name): void;
+  
+  }
+  declare module 'as-chain/assembly/decorator' {
+    export function internal(_: string): any;
+    export function other(_: string): any;
+    export function contract(_: any): any;
+    export function action(_: any, __?: any): any;
+    export function ignore(_: string): any;
+    export function packed(_: string): any;
+    export function table(_: any, __?: string): any;
+    export function variant(_: any, __?: string): any;
+    export const singleton: string;
+    export const notify: string;
+    export function serializer(_: string): any;
+    export function primary(_: any, __: any): any;
+    export function secondary(_: any, __?: any): any;
+    export function packer(_: any): any;
+  
+  }
+  declare module 'as-chain/assembly/env' {
+    /// <reference types="assembly" />
+    export function memcpy(destination: usize, source: usize, num: usize): usize;
+    export function printi(n: i64): void;
+    export function printui(n: u64): void;
+    export function prints(n: usize): void;
+    export function prints_l(cstr: usize, len: usize): void;
+    export function printhex(ptr: usize, len: usize): void;
+    export function printi128(i128_ptr: usize): void;
+    export function printui128(i128_ptr: usize): void;
+    export function printsf(value: f32): void;
+    export function printdf(value: f64): void;
+    export function printqf(f128_ptr: usize): void;
+    export function printn(name: u64): void;
+    export function get_sender(): u64;
+    export function current_time(): u64;
+    export function read_action_data(ptr: usize, len: u32): usize;
+    export function action_data_size(): u32;
+    export function require_recipient(name: u64): void;
+    export function require_auth(name: u64): void;
+    export function has_auth(name: u64): bool;
+    export function require_auth2(name: u64, permission: u64): void;
+    export function is_account(name: u64): bool;
+    export function send_inline(serialized_action: usize, size: u32): void;
+    export function send_context_free_inline(serialized_action: usize, size: u32): void;
+    export function publication_time(): u64;
+    export function current_receiver(): u64;
+    export function eosio_assert(test: u32, msg_ptr: usize): void;
+    export function eosio_assert_message(test: u32, msg_ptr: usize, msg_len: usize): void;
+    export function db_store_i64(scope: u64, table: u64, payer: u64, id: u64, data: usize, len: usize): i32;
+    export function db_update_i64(iterator: i32, payer: u64, data: usize, len: usize): void;
+    export function db_remove_i64(iterator: i32): void;
+    export function db_get_i64(iterator: i32, data: usize, len: usize): i32;
+    export function db_next_i64(iterator: i32, primary_ptr: usize): i32;
+    export function db_previous_i64(iterator: i32, primary_ptr: usize): i32;
+    export function db_find_i64(code: u64, scope: u64, table: u64, id: u64): i32;
+    export function db_lowerbound_i64(code: u64, scope: u64, table: u64, id: u64): i32;
+    export function db_upperbound_i64(code: u64, scope: u64, table: u64, id: u64): i32;
+    export function db_end_i64(code: u64, scope: u64, table: u64): i32;
+    export function db_idx64_store(scope: u64, table: u64, payer: u64, id: u64, secondary_ptr: usize): i32;
+    export function db_idx64_update(iterator: i32, payer: u64, secondary_ptr: usize): void;
+    export function db_idx64_remove(iterator: i32): void;
+    export function db_idx64_next(iterator: i32, primary_ptr: usize): i32;
+    export function db_idx64_previous(iterator: i32, primary_ptr: usize): i32;
+    export function db_idx64_find_primary(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary: u64): i32;
+    export function db_idx64_find_secondary(code: u64, scope: u64, table: u64, secondary: usize, primary_ptr: usize): i32;
+    export function db_idx64_lowerbound(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary_ptr: usize): i32;
+    export function db_idx64_upperbound(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary_ptr: usize): i32;
+    export function db_idx64_end(code: u64, scope: u64, table: u64): i32;
+    export function db_idx128_store(scope: u64, table: u64, payer: u64, id: u64, secondary_ptr: usize): i32;
+    export function db_idx128_update(iterator: i32, payer: u64, secondary_ptr: usize): void;
+    export function db_idx128_remove(iterator: i32): void;
+    export function db_idx128_next(iterator: i32, primary_ptr: usize): i32;
+    export function db_idx128_previous(iterator: i32, primary_ptr: usize): i32;
+    export function db_idx128_find_primary(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary: u64): i32;
+    export function db_idx128_find_secondary(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary_ptr: usize): i32;
+    export function db_idx128_lowerbound(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary_ptr: usize): i32;
+    export function db_idx128_upperbound(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary_ptr: usize): i32;
+    export function db_idx128_end(code: u64, scope: u64, table: u64): i32;
+    export function db_idx_double_store(scope: u64, table: u64, payer: u64, id: u64, secondary_ptr: usize): i32;
+    export function db_idx_double_update(iterator: i32, payer: u64, secondary_ptr: usize): void;
+    export function db_idx_double_remove(iterator: i32): void;
+    export function db_idx_double_next(iterator: i32, primary_ptr: usize): i32;
+    export function db_idx_double_previous(iterator: i32, primary_ptr: usize): i32;
+    export function db_idx_double_find_primary(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary: u64): i32;
+    export function db_idx_double_find_secondary(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary_ptr: usize): i32;
+    export function db_idx_double_lowerbound(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary_ptr: usize): i32;
+    export function db_idx_double_upperbound(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary_ptr: usize): i32;
+    export function db_idx_double_end(code: u64, scope: u64, table: u64): i32;
+    export function db_idx_long_double_store(scope: u64, table: u64, payer: u64, id: u64, secondary_ptr: usize): i32;
+    export function db_idx_long_double_update(iterator: i32, payer: u64, secondary_ptr: usize): void;
+    export function db_idx_long_double_remove(iterator: i32): void;
+    export function db_idx_long_double_next(iterator: i32, primary_ptr: usize): i32;
+    export function db_idx_long_double_previous(iterator: i32, primary_ptr: usize): i32;
+    export function db_idx_long_double_find_primary(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary: u64): i32;
+    export function db_idx_long_double_find_secondary(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary_ptr: usize): i32;
+    export function db_idx_long_double_lowerbound(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary_ptr: usize): i32;
+    export function db_idx_long_double_upperbound(code: u64, scope: u64, table: u64, secondary_ptr: usize, primary_ptr: usize): i32;
+    export function db_idx_long_double_end(code: u64, scope: u64, table: u64): i32;
+    export function db_idx256_store(scope: u64, table: u64, payer: u64, id: u64, data_ptr: usize, data_len: u32): i32;
+    export function db_idx256_update(iterator: i32, payer: u64, data_ptr: usize, data_len: u32): void;
+    export function db_idx256_remove(iterator: i32): void;
+    export function db_idx256_next(iterator: i32, primary_ptr: usize): i32;
+    export function db_idx256_previous(iterator: i32, primary_ptr: usize): i32;
+    export function db_idx256_find_primary(code: u64, scope: u64, table: u64, data_ptr: usize, data_len: u32, primary: u64): i32;
+    export function db_idx256_find_secondary(code: u64, scope: u64, table: u64, data_ptr: usize, data_len: u32, primary_ptr: usize): i32;
+    export function db_idx256_lowerbound(code: u64, scope: u64, table: u64, data_ptr: usize, data_len: u32, primary_ptr: usize): i32;
+    export function db_idx256_upperbound(code: u64, scope: u64, table: u64, data_ptr: usize, data_len: u32, primary_ptr: usize): i32;
+    export function db_idx256_end(code: u64, scope: u64, table: u64): i32;
+    export function assert_sha256(data_ptr: usize, length: u32, hash_ptr: usize): void;
+    export function assert_sha1(data_ptr: usize, length: u32, hash_120_ptr: usize): void;
+    export function assert_sha512(data_ptr: usize, length: u32, hash_ptr: usize): void;
+    export function assert_ripemd160(data_ptr: usize, length: u32, hash_ptr: usize): void;
+    export function sha256(data_ptr: usize, length: u32, hash_ptr: usize): void;
+    export function sha1(data_ptr: usize, length: u32, hash_ptr: usize): void;
+    export function sha512(data_ptr: usize, length: u32, hash_ptr: usize): void;
+    export function ripemd160(data_ptr: usize, length: u32, hash_ptr: usize): void;
+    export function recover_key(digest_ptr: usize, sig_ptr: usize, siglen: u32, pub_ptr: usize, publen: u32): i32;
+    export function assert_recover_key(digest_ptr: usize, sig_ptr: usize, siglen: u32, pub_ptr: usize, publen: u32): void;
+    export function send_deferred(sender_id_u128_ptr: usize, payer: u64, serialized_transaction_ptr: usize, size: u32, replace_existing: u32): void;
+    export function cancel_deferred(sender_id_u128_ptr: usize): i32;
+    export function read_transaction(buffer_ptr: usize, size: u32): usize;
+    export function transaction_size(): usize;
+    export function tapos_block_num(): u32;
+    export function tapos_block_prefix(): u32;
+    export function expiration(): u32;
+    export function get_action(type: u32, index: u32, buff_ptr: usize, size: u32): i32;
+    export function get_context_free_data(index: u32, buff_ptr: usize, size: u32): i32;
+  
+  }
+  declare module 'as-chain/assembly/float128' {
+    /// <reference types="assembly" />
+    import { Packer } from "as-chain/assembly/serializer";
+    export class Float128 implements Packer {
+        data: Array<u64>;
+        constructor(lo?: u64, hi?: u64);
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static eq(a: Float128, b: Float128): bool;
+        static ne(a: Float128, b: Float128): bool;
+    }
+  
+  }
+  declare module 'as-chain/assembly/helpers' {
+    /// <reference types="assembly" />
+    import { PermissionLevel } from "as-chain/assembly/action";
+    import { SecondaryValue } from "as-chain/assembly/idxdb";
+    import { MultiIndex, MultiIndexValue } from "as-chain/assembly/mi";
+    import { Name } from "as-chain/assembly/name";
+    import { Packer } from "as-chain/assembly/serializer";
+    export class ActionWrapperAct {
+        action: Name;
+        contract: Name;
+        permissionLevel: PermissionLevel;
+        constructor(action: Name, contract: Name, permissionLevel: PermissionLevel);
+        send<T extends Packer>(data: T): void;
+    }
+    export class ActionWrapper {
+        action: Name;
+        constructor(action?: Name);
+        static fromString(s: string): ActionWrapper;
+        /**
+         * Create an action with act given contract, actor, and permission
+         * @param {Name} contract - The name of the contract
+         * @param {Name} actor - The name of the account that is executing the contract.
+         * @param {string} permission - The permission that the actor must have to execute the contract.
+         * @returns An instance of the Act class.
+         */
+        act(contract: Name, permissionLevel: PermissionLevel): ActionWrapperAct;
+    }
+    export class Contract {
+        receiver: Name;
+        firstReceiver: Name;
+        action: Name;
+        constructor(receiver: Name, firstReceiver: Name, action: Name);
+    }
+    export class Table implements MultiIndexValue {
+        pack(): u8[];
+        unpack(_: u8[]): usize;
+        getSize(): usize;
+        getPrimaryValue(): u64;
+        getSecondaryValue(_: i32): SecondaryValue;
+        setSecondaryValue(_: usize, __: SecondaryValue): void;
+        static new(_: Name, __: Name): MultiIndex<Table>;
+    }
+  
+  }
+  declare module 'as-chain/assembly/idx128' {
+    /// <reference types="assembly" />
+    import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "as-chain/assembly/idxdb";
+    import { U128 } from "as-chain/assembly/bignum";
+    class IDX128ReturnValue {
+        i: SecondaryIterator;
+        value: U128;
+        constructor(i: SecondaryIterator, value: U128);
+    }
+    export class IDX128 extends IDXDB {
+        store(id: u64, value: U128, payer: u64): SecondaryIterator;
+        storeEx(id: u64, value: SecondaryValue, payer: u64): SecondaryIterator;
+        update(iterator: SecondaryIterator, secondary: U128, payer: u64): void;
+        updateEx(iterator: SecondaryIterator, secondary: SecondaryValue, payer: u64): void;
+        remove(iterator: SecondaryIterator): void;
+        next(iterator: SecondaryIterator): SecondaryIterator;
+        previous(iterator: SecondaryIterator): SecondaryIterator;
+        findPrimary(primary: u64): IDX128ReturnValue;
+        findPrimaryEx(primary: u64): SecondaryReturnValue;
+        find(secondary: U128): SecondaryIterator;
+        lowerBound(secondary: U128): SecondaryIterator;
+        lowerBoundEx(secondary: SecondaryValue): SecondaryReturnValue;
+        upperBound(secondary: U128): SecondaryIterator;
+        upperBoundEx(secondary: SecondaryValue): SecondaryReturnValue;
+        end(): SecondaryIterator;
+    }
+    export {};
+  
+  }
+  declare module 'as-chain/assembly/idx256' {
+    /// <reference types="assembly" />
+    import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "as-chain/assembly/idxdb";
+    import { U256 } from "as-chain/assembly/bignum";
+    class IDX256ReturnValue {
+        i: SecondaryIterator;
+        value: U256;
+        constructor(i: SecondaryIterator, value: U256);
+    }
+    export class IDX256 extends IDXDB {
+        store(id: u64, value: U256, payer: u64): SecondaryIterator;
+        storeEx(id: u64, value: SecondaryValue, payer: u64): SecondaryIterator;
+        update(iterator: SecondaryIterator, value: U256, payer: u64): void;
+        updateEx(iterator: SecondaryIterator, secondary: SecondaryValue, payer: u64): void;
+        remove(iterator: SecondaryIterator): void;
+        next(iterator: SecondaryIterator): SecondaryIterator;
+        previous(iterator: SecondaryIterator): SecondaryIterator;
+        findPrimary(primary: u64): IDX256ReturnValue;
+        findPrimaryEx(primary: u64): SecondaryReturnValue;
+        find(secondary: U256): SecondaryIterator;
+        lowerBound(value: U256): SecondaryIterator;
+        lowerBoundEx(secondary: SecondaryValue): SecondaryReturnValue;
+        upperBound(value: U256): SecondaryIterator;
+        upperBoundEx(secondary: SecondaryValue): SecondaryReturnValue;
+        end(): SecondaryIterator;
+    }
+    export {};
+  
+  }
+  declare module 'as-chain/assembly/idx64' {
+    /// <reference types="assembly" />
+    import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "as-chain/assembly/idxdb";
+    class IDX64ReturnValue {
+        i: SecondaryIterator;
+        value: u64;
+        constructor(i: SecondaryIterator, value: u64);
+    }
+    export class IDX64 extends IDXDB {
+        store(id: u64, value: u64, payer: u64): SecondaryIterator;
+        update(iterator: SecondaryIterator, value: u64, payer: u64): void;
+        storeEx(id: u64, value: SecondaryValue, payer: u64): SecondaryIterator;
+        updateEx(iterator: SecondaryIterator, secondary: SecondaryValue, payer: u64): void;
+        remove(iterator: SecondaryIterator): void;
+        next(iterator: SecondaryIterator): SecondaryIterator;
+        previous(iterator: SecondaryIterator): SecondaryIterator;
+        findPrimary(primary: u64): IDX64ReturnValue;
+        findPrimaryEx(primary: u64): SecondaryReturnValue;
+        find(secondary: u64): SecondaryIterator;
+        lowerBound(secondary: u64): SecondaryIterator;
+        lowerBoundEx(secondary: SecondaryValue): IDX64ReturnValue;
+        upperBound(secondary: u64): SecondaryIterator;
+        upperBoundEx(secondary: u64): IDX64ReturnValue;
+        end(): SecondaryIterator;
+    }
+    export {};
+  
+  }
+  declare module 'as-chain/assembly/idxdb' {
+    /// <reference types="assembly" />
+    import { U128, U256 } from "as-chain/assembly/bignum";
+    import { Float128 } from "as-chain/assembly/float128";
+    export class SecondaryIterator {
+        i: i32;
+        primary: u64;
+        dbIndex: u32;
+        constructor(i: i32, primary: u64, dbIndex: u32);
+        isOk(): bool;
+        isEnd(): bool;
+    }
+    export enum SecondaryType {
+        U64 = 0,
+        U128 = 1,
+        U256 = 2,
+        F64 = 3,
+        F128 = 4
+    }
+    export class SecondaryValue {
+        type: SecondaryType;
+        value: Array<u64>;
+        constructor(type: SecondaryType, value: Array<u64>);
+    }
+    export function newSecondaryValue_double<T extends number>(value: T): SecondaryValue;
+    export function newSecondaryValue_u64(value: u64): SecondaryValue;
+    export function newSecondaryValue_U128(value: U128): SecondaryValue;
+    export function newSecondaryValue_U256(value: U256): SecondaryValue;
+    export function newSecondaryValue_f64(value: f64): SecondaryValue;
+    export function newSecondaryValue_Float128(value: Float128): SecondaryValue;
+    export function getSecondaryValue_u64(value: SecondaryValue): u64;
+    export function getSecondaryValue_U128(value: SecondaryValue): U128;
+    export function getSecondaryValue_U256(value: SecondaryValue): U256;
+    export function getSecondaryValue_f64(value: SecondaryValue): f64;
+    export function getSecondaryValue_Float128(value: SecondaryValue): Float128;
+    export class SecondaryReturnValue {
+        i: SecondaryIterator;
+        value: SecondaryValue;
+        constructor(i: SecondaryIterator, value: SecondaryValue);
+    }
+    export abstract class IDXDB {
+        code: u64;
+        scope: u64;
+        table: u64;
+        dbIndex: u32;
+        constructor(code: u64, scope: u64, table: u64, dbIndex: u32);
+        abstract storeEx(id: u64, secondary: SecondaryValue, payer: u64): SecondaryIterator;
+        abstract updateEx(iterator: SecondaryIterator, secondary: SecondaryValue, payer: u64): void;
+        abstract remove(iterator: SecondaryIterator): void;
+        abstract findPrimaryEx(primary: u64): SecondaryReturnValue;
+    }
+  
+  }
+  declare module 'as-chain/assembly/idxf128' {
+    /// <reference types="assembly" />
+    import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "as-chain/assembly/idxdb";
+    import { Float128 } from "as-chain/assembly/float128";
+    class IDXF128ReturnValue {
+        i: SecondaryIterator;
+        value: Float128;
+        constructor(i: SecondaryIterator, value: Float128);
+    }
+    export class IDXF128 extends IDXDB {
+        store(id: u64, value: Float128, payer: u64): SecondaryIterator;
+        storeEx(id: u64, value: SecondaryValue, payer: u64): SecondaryIterator;
+        update(iterator: SecondaryIterator, secondary: Float128, payer: u64): void;
+        updateEx(iterator: SecondaryIterator, secondary: SecondaryValue, payer: u64): void;
+        remove(iterator: SecondaryIterator): void;
+        next(iterator: SecondaryIterator): SecondaryIterator;
+        previous(iterator: SecondaryIterator): SecondaryIterator;
+        findPrimary(primary: u64): IDXF128ReturnValue;
+        findPrimaryEx(primary: u64): SecondaryReturnValue;
+        find(secondary: Float128): SecondaryIterator;
+        lowerBound(secondary: Float128): SecondaryIterator;
+        lowerBoundEx(secondary: SecondaryValue): SecondaryReturnValue;
+        upperBound(secondary: Float128): SecondaryIterator;
+        upperBoundEx(secondary: SecondaryValue): SecondaryReturnValue;
+        end(): SecondaryIterator;
+    }
+    export {};
+  
+  }
+  declare module 'as-chain/assembly/idxf64' {
+    /// <reference types="assembly" />
+    import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "as-chain/assembly/idxdb";
+    class IDXF64ReturnValue {
+        i: SecondaryIterator;
+        value: f64;
+        constructor(i: SecondaryIterator, value: f64);
+    }
+    export class IDXF64 extends IDXDB {
+        store(id: u64, value: f64, payer: u64): SecondaryIterator;
+        storeEx(id: u64, value: SecondaryValue, payer: u64): SecondaryIterator;
+        update(iterator: SecondaryIterator, value: f64, payer: u64): void;
+        updateEx(iterator: SecondaryIterator, secondary: SecondaryValue, payer: u64): void;
+        remove(iterator: SecondaryIterator): void;
+        next(iterator: SecondaryIterator): SecondaryIterator;
+        previous(iterator: SecondaryIterator): SecondaryIterator;
+        findPrimary(primary: u64): IDXF64ReturnValue;
+        findPrimaryEx(primary: u64): SecondaryReturnValue;
+        find(secondary: f64): SecondaryIterator;
+        lowerBound(secondary: f64): SecondaryIterator;
+        lowerBoundEx(secondary: SecondaryValue): IDXF64ReturnValue;
+        upperBound(secondary: f64): SecondaryIterator;
+        upperBoundEx(secondary: SecondaryValue): IDXF64ReturnValue;
+        end(): SecondaryIterator;
+    }
+    export {};
+  
+  }
+  declare module 'as-chain/assembly/index' {
+    export { U128, U256 } from "as-chain/assembly/bignum";
+    export { Float128 } from "as-chain/assembly/float128";
+    export { VarInt32, VarUint32, calcPackedVarUint32Length } from "as-chain/assembly/varint";
+    export { DBI64, PrimaryIterator, UNKNOWN_PRIMARY_KEY } from "as-chain/assembly/dbi64";
+    export { IDX64 } from "as-chain/assembly/idx64";
+    export { IDXF64 } from "as-chain/assembly/idxf64";
+    export { IDXF128 } from "as-chain/assembly/idxf128";
+    export { IDX128 } from "as-chain/assembly/idx128";
+    export { IDX256 } from "as-chain/assembly/idx256";
+    export { assert, check, currentTimePoint, currentTime, currentTimeMs, currentTimeSec, } from "as-chain/assembly/system";
+    export { Microseconds, TimePoint, TimePointSec, BlockTimestamp } from "as-chain/assembly/time";
+    export { prints, printui, print, printString, printArray, printHex, printi, printI128, printU128, printsf, printdf, printqf, printn, } from "as-chain/assembly/debug";
+    export { IDXDB, SecondaryType, SecondaryValue, SecondaryIterator, newSecondaryValue_u64, newSecondaryValue_U128, newSecondaryValue_U256, newSecondaryValue_f64, newSecondaryValue_Float128, getSecondaryValue_u64, getSecondaryValue_U128, getSecondaryValue_U256, getSecondaryValue_f64, getSecondaryValue_Float128, } from "as-chain/assembly/idxdb";
+    export { MultiIndex, MultiIndexValue, SAME_PAYER } from "as-chain/assembly/mi";
+    export { Singleton } from "as-chain/assembly/singleton";
+    export { Contract, ActionWrapper, Table } from "as-chain/assembly/helpers";
+    export { getSender, readActionData, unpackActionData, actionDataSize, requireRecipient, requireAuth, hasAuth, requireAuth2, isAccount, publicationTime, currentReceiver } from "as-chain/assembly/action";
+    export { Name, nameToSuffix } from "as-chain/assembly/name";
+    export { Action, PermissionLevel } from "as-chain/assembly/action";
+    export { Asset, ExtendedAsset, Symbol, ExtendedSymbol, isValid } from "as-chain/assembly/asset";
+    export { sendDeferred, cancelDeferred, readTransaction, transactionSize, taposBlockNum, taposBlockPrefix, transactionExpiration, getAction, getContextFreeData, TransactionExtension, Transaction, } from "as-chain/assembly/transaction";
+    export { PublicKey, Signature, Checksum160, Checksum256, Checksum512, recoverKey, assertRecoverKey, assertSha256, assertSha1, assertSha512, assertRipemd160, sha256, sha1, sha512, ripemd160, } from "as-chain/assembly/crypto";
+    export * from "as-chain/assembly/serializer";
+    export { Utils } from "as-chain/assembly/utils";
+    export * from "as-chain/assembly/decorator";
+  
+  }
+  declare module 'as-chain/assembly/mi' {
+    /// <reference types="assembly" />
+    import { IDXDB, SecondaryValue, SecondaryIterator } from "as-chain/assembly/idxdb";
+    import { DBI64, PrimaryIterator, PrimaryValue } from "as-chain/assembly/dbi64";
+    import { Name } from "as-chain/assembly/name";
+    export const SAME_PAYER: Name;
+    export interface MultiIndexValue extends PrimaryValue {
+        getSecondaryValue(index: usize): SecondaryValue;
+        setSecondaryValue(index: usize, value: SecondaryValue): void;
+    }
+    export class MultiIndex<T extends MultiIndexValue> {
+        db: DBI64;
+        idxdbs: Array<IDXDB>;
+        nextPrimaryKey: u64;
+        constructor(code: Name, scope: Name, table: Name, indexes?: Array<IDXDB>);
+        set(value: T, payer: Name): PrimaryIterator;
+        store(value: T, payer: Name): PrimaryIterator;
+        update(it: PrimaryIterator, value: T, payer: Name): void;
+        remove(iterator: PrimaryIterator): void;
+        removeEx(primary: u64): void;
+        get(iterator: PrimaryIterator): T;
+        getByKey(primary: u64): T | null;
+        next(iterator: PrimaryIterator): PrimaryIterator;
+        previous(iterator: PrimaryIterator): PrimaryIterator;
+        find(id: u64): PrimaryIterator;
+        requireFind(id: u64, findError?: string): PrimaryIterator;
+        requireNotFind(id: u64, notFindError?: string): PrimaryIterator;
+        lowerBound(id: u64): PrimaryIterator;
+        upperBound(id: u64): PrimaryIterator;
+        begin(): PrimaryIterator;
+        end(): PrimaryIterator;
+        getIdxDB(i: i32): IDXDB;
+        idxUpdate(it: SecondaryIterator, idxValue: SecondaryValue, payer: Name): void;
+        availablePrimaryKey(): u64;
+    }
+  
+  }
+  declare module 'as-chain/assembly/name' {
+    /// <reference types="assembly" />
+    import { Packer } from "as-chain/assembly/serializer";
+    export function S2N(s: string): u64;
+    export function N2S(value: u64): string;
+    export class Name implements Packer {
+        N: u64;
+        constructor(n?: u64);
+        static fromString(s: string): Name;
+        static fromU64(n: u64): Name;
+        toString(): string;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static eq(a: Name, b: Name): bool;
+        static neq(a: Name, b: Name): bool;
+        static lt(a: Name, b: Name): bool;
+        static gt(a: Name, b: Name): bool;
+        static lte(a: Name, b: Name): bool;
+        static gte(a: Name, b: Name): bool;
+    }
+    export function nameToSuffix(name: Name): Name;
+  
+  }
+  declare module 'as-chain/assembly/serializer' {
+    /// <reference types="assembly" />
+    import { Name } from "as-chain/assembly/name";
+    export interface Packer {
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+    }
+    export class Encoder {
+        buf: Array<u8>;
+        pos: usize;
+        constructor(bufferSize: usize);
+        checkPos(n: usize): void;
+        incPos(n: usize): void;
+        pack(ser: Packer): usize;
+        packBytes(arr: u8[]): usize;
+        packNumberArray<T>(arr: T[]): usize;
+        packNumber<T>(n: T): usize;
+        packName(n: Name): usize;
+        packLength(val: u32): usize;
+        packString(s: string): usize;
+        packStringArray(arr: string[]): usize;
+        packObjectArray<T>(arr: T[]): usize;
+        getBytes(): u8[];
+    }
+    export class Decoder {
+        buf: u8[];
+        pos: u32;
+        constructor(buf: u8[]);
+        remains(): u8[];
+        isEnd(): bool;
+        incPos(n: u32): void;
+        getPos(): u32;
+        unpack(ser: Packer): usize;
+        unpackNumber<T>(): T;
+        unpackName(): Name;
+        unpackLength(): u32;
+        unpackBytes(size: usize): u8[];
+        unpackNumberArray<T>(): T[];
+        unpackString(): string;
+        unpackStringArray(): string[];
+    }
+  
+  }
+  declare module 'as-chain/assembly/singleton' {
+    /// <reference types="assembly" />
+    import { MultiIndex, MultiIndexValue } from "as-chain/assembly/mi";
+    import { Name } from "as-chain/assembly/name";
+    export class Singleton<T extends MultiIndexValue> {
+        key: u64;
+        mi: MultiIndex<T>;
+        constructor(code: Name, scope: Name, table: Name);
+        set(value: T, payer: Name): void;
+        getOrNull(): T | null;
+        get(): T;
+        remove(): void;
+    }
+  
+  }
+  declare module 'as-chain/assembly/system' {
+    /// <reference types="assembly" />
+    import { TimePoint } from "as-chain/assembly/time";
+    export function assert(test: bool, msg: string): void;
+    export function check(test: bool, msg: string): void;
+    export function currentTimePoint(): TimePoint;
+    export function currentTime(): u64;
+    export function currentTimeMs(): u64;
+    export function currentTimeSec(): u32;
+  
+  }
+  declare module 'as-chain/assembly/time' {
+    /// <reference types="assembly" />
+    import { Packer } from "as-chain/assembly/serializer";
+    export class Microseconds implements Packer {
+        _count: i64;
+        constructor(_count?: i64);
+        static maximum(): Microseconds;
+        toTimePoint(): TimePoint;
+        count(): i64;
+        toString(): string;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static add(a: Microseconds, b: Microseconds): Microseconds;
+        static sub(a: Microseconds, b: Microseconds): Microseconds;
+        static mul(a: Microseconds, b: Microseconds): Microseconds;
+        static div(a: Microseconds, b: Microseconds): Microseconds;
+        static eq(a: Microseconds, b: Microseconds): bool;
+        static neq(a: Microseconds, b: Microseconds): bool;
+        static gt(a: Microseconds, b: Microseconds): bool;
+        static gte(a: Microseconds, b: Microseconds): bool;
+        static lt(a: Microseconds, b: Microseconds): bool;
+        static lte(a: Microseconds, b: Microseconds): bool;
+        toSeconds(): i64;
+    }
+    export function seconds(s: i64): Microseconds;
+    export function milliseconds(s: i64): Microseconds;
+    export function minutes(m: i64): Microseconds;
+    export function hours(h: i64): Microseconds;
+    export function days(d: i64): Microseconds;
+    export class TimePoint implements Packer {
+        elapsed: Microseconds;
+        constructor(elapsed?: i64);
+        timeSinceEpoch(): i64;
+        msSinceEpoch(): i64;
+        secSinceEpoch(): u32;
+        toString(): string;
+        toMicroseconds(): Microseconds;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static gt(a: TimePoint, b: TimePoint): bool;
+        static gte(a: TimePoint, b: TimePoint): bool;
+        static lt(a: TimePoint, b: TimePoint): bool;
+        static lte(a: TimePoint, b: TimePoint): bool;
+        static eq(a: TimePoint, b: TimePoint): bool;
+        static neq(a: TimePoint, b: TimePoint): bool;
+        static add(a: TimePoint, b: TimePoint): TimePoint;
+        static sub(a: TimePoint, b: TimePoint): TimePoint;
+        static mul(a: TimePoint, b: TimePoint): TimePoint;
+        static div(a: TimePoint, b: TimePoint): TimePoint;
+    }
+    export class TimePointSec implements Packer {
+        utcSeconds: u32;
+        constructor(utcSeconds?: u32);
+        static fromTimePoint(t: TimePoint): TimePointSec;
+        static maximum(): TimePointSec;
+        static min(): TimePointSec;
+        secSinceEpoch(): i32;
+        toString(): string;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static gt(a: TimePointSec, b: TimePointSec): bool;
+        static gte(a: TimePointSec, b: TimePointSec): bool;
+        static lt(a: TimePointSec, b: TimePointSec): bool;
+        static lte(a: TimePointSec, b: TimePointSec): bool;
+        static eq(a: TimePointSec, b: TimePointSec): bool;
+        static neq(a: TimePointSec, b: TimePointSec): bool;
+        static add(a: TimePointSec, b: TimePointSec): TimePointSec;
+        static sub(a: TimePointSec, b: TimePointSec): TimePointSec;
+        static mul(a: TimePointSec, b: TimePointSec): TimePointSec;
+        static div(a: TimePointSec, b: TimePointSec): TimePointSec;
+    }
+    export class BlockTimestamp implements Packer {
+        slot: u32;
+        static blockIntervalMs: i32;
+        static blockTimestampEpoch: i64;
+        constructor(slot?: u32);
+        static fromTimePoint(t: TimePoint): BlockTimestamp;
+        static fromTimePointSec(t: TimePointSec): BlockTimestamp;
+        static maximum(): BlockTimestamp;
+        static min(): BlockTimestamp;
+        next(): BlockTimestamp;
+        toTimePoint(): TimePoint;
+        setTimePoint(t: TimePoint): void;
+        setTimePointSec(t: TimePointSec): void;
+        toString(): string;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        static gt(a: BlockTimestamp, b: BlockTimestamp): bool;
+        static gte(a: BlockTimestamp, b: BlockTimestamp): bool;
+        static lt(a: BlockTimestamp, b: BlockTimestamp): bool;
+        static lte(a: BlockTimestamp, b: BlockTimestamp): bool;
+        static eq(a: BlockTimestamp, b: BlockTimestamp): bool;
+        static neq(a: BlockTimestamp, b: BlockTimestamp): bool;
+    }
+  
+  }
+  declare module 'as-chain/assembly/transaction' {
+    /// <reference types="assembly" />
+    import { U128 } from "as-chain/assembly/bignum";
+    import { VarUint32 } from "as-chain/assembly/varint";
+    import { TimePointSec } from "as-chain/assembly/time";
+    import { Action } from "as-chain/assembly/action";
+    import { Packer } from "as-chain/assembly/serializer";
+    import { Name } from "as-chain/assembly/name";
+    export function sendDeferred(sender_id: U128, payer: Name, serialized_transaction: u8[], replace_existing: bool): void;
+    export function cancelDeferred(sender_id: U128): i32;
+    export function readTransaction(buffer: u8[]): usize;
+    export function transactionSize(): usize;
+    export function taposBlockNum(): u32;
+    export function taposBlockPrefix(): u32;
+    export function transactionExpiration(): u32;
+    export function getAction(type: u32, index: u32): u8[];
+    export function getContextFreeData(index: u32): u8[];
+    export class TransactionExtension implements Packer {
+        type: u16;
+        data: u8[];
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+    }
+    export class Transaction implements Packer {
+        expiration: TimePointSec;
+        refBlockNum: u16;
+        refBlockPrefix: u32;
+        maxNetUsageWords: VarUint32;
+        maxCpuUsageMs: u8;
+        delaySec: VarUint32;
+        contextFreeActions: Action[];
+        actions: Action[];
+        extention: TransactionExtension[];
+        constructor(delaySec?: u32);
+        addAction(action: Action): void;
+        addContextFreeActions(action: Action): void;
+        addTransactionExtension(ext: TransactionExtension): void;
+        send(senderId: U128, replaceExisting: bool, payer: Name): void;
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+    }
+  
+  }
+  declare module 'as-chain/assembly/utils' {
+    /// <reference types="assembly" />
+    export namespace Utils {
+        function getDataStart<T>(arr: Array<T>): usize;
+        function toU8Array(ab: ArrayBuffer): Array<u8>;
+        function stringToU8Array(s: string): Array<u8>;
+        function calcPackedStringLength(val: string): usize;
+        function bytesToHex(bytes: u8[]): string;
+        function hexToBytes(hex: string): u8[];
+        function bytesCmp(a: u8[], b: u8[]): i32;
+    }
+  
+  }
+  declare module 'as-chain/assembly/varint' {
+    /// <reference types="assembly" />
+    import { Packer } from "as-chain/assembly/serializer";
+    export function calcPackedVarUint32Length(val: u32): usize;
+    export class VarInt32 implements Packer {
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+    }
+    export class VarUint32 implements Packer {
+        n: u32;
+        constructor(n?: u32);
+        pack(): u8[];
+        unpack(val: u8[]): usize;
+        getSize(): usize;
+        static eq(a: VarUint32, b: VarUint32): bool;
+    }
+  
+  }
+  declare module 'as-chain/tests/target/testaction' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testasset' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testcrypto' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testgencode' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testmi' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testname' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testprint' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testpublickey' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testserializer' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testsingleton' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testsystem' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testtable' {
+    /// <reference types="assembly" />
+    import * as _chain from "as-chain";
+    import { Name, ExtendedAsset } from "as-chain";
+    export class globalDB extends _chain.MultiIndex<global> {
+    }
+    export class global implements _chain.MultiIndexValue {
+        escrow_id: u64;
+        constructor(escrow_id?: u64);
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        getPrimaryValue(): u64;
+        getSecondaryValue(i: i32): _chain.SecondaryValue;
+        setSecondaryValue(i: i32, value: _chain.SecondaryValue): void;
+        static new(code: _chain.Name, scope: _chain.Name): _chain.Singleton<global>;
+    }
+    export class escrowDB extends _chain.MultiIndex<escrow> {
+        get byFromDB(): _chain.IDX64;
+        get byToDB(): _chain.IDX64;
+    }
+    export class escrow implements _chain.MultiIndexValue {
+        id: u64;
+        from: Name;
+        to: Name;
+        fromTokens: ExtendedAsset[];
+        fromNfts: u64[];
+        toTokens: ExtendedAsset[];
+        toNfts: u64[];
+        expiry: u32;
+        constructor(id?: u64, from?: Name, to?: Name, fromTokens?: ExtendedAsset[], fromNfts?: u64[], toTokens?: ExtendedAsset[], toNfts?: u64[], expiry?: u32);
+        get primary(): u64;
+        get byFrom(): u64;
+        set byFrom(value: u64);
+        get byTo(): u64;
+        set byTo(value: u64);
+        pack(): u8[];
+        unpack(data: u8[]): usize;
+        getSize(): usize;
+        getPrimaryValue(): u64;
+        getSecondaryValue(i: i32): _chain.SecondaryValue;
+        setSecondaryValue(i: i32, value: _chain.SecondaryValue): void;
+        static new(code: _chain.Name, scope: _chain.Name): escrowDB;
+    }
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testtransaction' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/target/testvariant' {
+    /// <reference types="assembly" />
+    export function apply(receiver: u64, firstReceiver: u64, action: u64): void;
+  
+  }
+  declare module 'as-chain/tests/testaction' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testasset' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testcrypto' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testgencode' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testmi' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testname' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testprint' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testpublickey' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testserializer' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testsingleton' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testsystem' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testtable' {
+    /// <reference types="assembly" />
+    import { Name, ExtendedAsset, Table } from "as-chain";
+    export class global extends Table {
+        escrow_id: u64;
+        constructor(escrow_id?: u64);
+    }
+    export class escrow extends Table {
+        id: u64;
+        from: Name;
+        to: Name;
+        fromTokens: ExtendedAsset[];
+        fromNfts: u64[];
+        toTokens: ExtendedAsset[];
+        toNfts: u64[];
+        expiry: u32;
+        constructor(id?: u64, from?: Name, to?: Name, fromTokens?: ExtendedAsset[], fromNfts?: u64[], toTokens?: ExtendedAsset[], toNfts?: u64[], expiry?: u32);
+        get primary(): u64;
+        get byFrom(): u64;
+        set byFrom(value: u64);
+        get byTo(): u64;
+        set byTo(value: u64);
+    }
+  
+  }
+  declare module 'as-chain/tests/testtransaction' {
+    export {};
+  
+  }
+  declare module 'as-chain/tests/testvariant' {
+    export {};
+  
+  }
+  declare module 'as-chain' {
+    import main = require('as-chain/assembly/index');
+    export = main;
+  }

@@ -18,10 +18,10 @@
     </div>
 
     <div id="tabs">
-      <a id="sourceTab" class="tab source active" title="AssemblyScript source code">module.ts</a>
-      <a id="binaryTab" class="tab binary" title="Click to Compile">module.wat</a>
+      <a id="sourceTab" class="tab source active" title="AssemblyScript source code">contract.ts</a>
+      <a id="binaryTab" class="tab binary" title="Click to Compile">contract.wat</a>
       <a id="abiTab" class="tab abi" title="ABI">contract.abi</a>
-      <a id="htmlTab" class="tab html" title="JavaScript host code">index.html</a>
+      <a id="htmlTab" class="tab html" title="JavaScript host code">test.html</a>
       <a id="playTab" class="tab play" title="Click to Compile & Run">Run</a>
     </div>
 
@@ -54,13 +54,16 @@
 </template>
 
 <script lang="ts">
+import { h, defineComponent } from 'vue'
+import MonacoEditor from 'vue-monaco'
+import theme from './theme.json'
+import { config as watLanguageConfig, tokens as watLanguageTokens } from './wat'
+
 import asc from "assemblyscript/asc";
 import { ContractTransform } from "./transform";
-import { config as watLanguageConfig, tokens as watLanguageTokens } from './wat'
-import MonacoEditor from 'vue-monaco'
-import { h, defineComponent } from 'vue'
 
-import defaultContract from './defaultContract.as?assembly'
+import defaultContract from './defaultContract.ts.txt?assembly'
+import defaultTest from './defaultTest.ts.txt?assembly'
 
 import asChainIndex from 'as-chain/assembly/index.ts?assembly'
 import asChainAction from 'as-chain/assembly/action.ts?assembly'
@@ -105,14 +108,16 @@ import asBignumIntegerSafeu64 from 'as-bignum/assembly/integer/safe/u64.ts?assem
 import asBignumIntegerSafeu128 from 'as-bignum/assembly/integer/safe/u128.ts?assembly'
 import asBignumIntegerSafeu256 from 'as-bignum/assembly/integer/safe/u256.ts?assembly'
 
+import asChainTypes from '../types/as-chain.d.ts.txt?assembly'
 
 MonacoEditor.render = () => h('div')
 
 const MONACO_EDITOR_FONT = 'JetBrains Mono'
 
-let sourceEditor = undefined as any
+let contractEditor = undefined as any
 let binaryEditor = undefined as any
 let abiEditor = undefined as any
+let htmlEditor = undefined as any
 
 export default defineComponent({
   name: 'editor-view',
@@ -127,9 +132,9 @@ export default defineComponent({
 
       // Options
       optionUseRe: /^(\w+)=(\w+(\/\w+|\.\w+)*)$/,
-      module_wat: '(module)\n',
-      module_wasm: new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]),
-      module_js: '\n',
+      contract_wat: '(module)\n',
+      contract_wasm: new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]),
+      contract_js: '\n',
       didCompile: false,
     }
   },
@@ -144,32 +149,7 @@ export default defineComponent({
       monaco.languages.setMonarchTokensProvider('wat', watLanguageTokens)
 
       // Extend the default theme with WebAssembly rules
-      monaco.editor.defineTheme('vs-wasm', {
-        base: 'vs-dark',
-        inherit: true,
-        rules: [
-          // Common
-          { token: 'number', foreground: 'ffc37a' },
-          { token: 'comment', foreground: '595959', fontStyle: 'italic' },
-          // WebAssembly
-          { token: 'instruction', foreground: 'dcdcaa' },
-          { token: 'controlInstruction', foreground: 'c586c0' },
-          { token: 'identifier', foreground: '9cdcf0' },
-          // TypeScript (reset)
-          { token: 'identifier.ts', foreground: 'd4d4d4' },
-          // Diagnostics
-          { token: 'error', foreground: 'd16969' },
-          { token: 'warning', foreground: 'dcdcaa' },
-          { token: 'info', foreground: '11a8cd' },
-          { token: 'pedantic', foreground: 'c586c0' },
-          { token: 'underline', foreground: 'd16969' }
-        ],
-        colors: {
-          'scrollbar.shadow': '#1e1e1eff',
-          'editorLineNumber.foreground': '#444444',
-          'editorLineNumber.activeForeground': '#888888'
-        }
-      })
+      monaco.editor.defineTheme('vs-wasm', theme)
 
       // Add AssemblyScript Standard Library definition
       monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
@@ -182,18 +162,7 @@ export default defineComponent({
       });
 
       monaco.languages.typescript.typescriptDefaults.addExtraLib(asc.definitionFiles.assembly, "assemblyscript/std/assembly/index.d.ts")
-      monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, "as-chain/index.d.ts")
-
-      monaco.editor.createModel(
-          asChainIndex,
-          'typescript',
-          monaco.Uri.parse(`as-chain/index.d.ts`)
-      )
-      // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'file://node_modules/as-chain/index.ts');
-      // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'file://node_modules/as-chain.ts');
-      // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'file://node_modules/as-chain');
-      // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'file://as-chain/index.ts');
-      // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'as-chain.ts');
+      monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainTypes, "as-chain/index.d.ts");
 
       // Common editor options
       const commonEditorOptions = {
@@ -202,7 +171,7 @@ export default defineComponent({
         automaticLayout: true,
         scrollBeyondLastLine: false,
         tabSize: 2,
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: MONACO_EDITOR_FONT,
         fontLigatures: true,
         padding: {
@@ -228,9 +197,9 @@ export default defineComponent({
       const abiPane = document.getElementById('abi')
 
       // Create editor panes
-      const sourceModel = monaco.editor.createModel(defaultContract, 'typescript')
-      sourceEditor = monaco.editor.create(sourcePane, Object.assign({}, commonEditorOptions, {
-        model: sourceModel,
+      const contractModel = monaco.editor.createModel(defaultContract, 'typescript')
+      contractEditor = monaco.editor.create(sourcePane, Object.assign({}, commonEditorOptions, {
+        model: contractModel,
       }))
 
       const binaryModel = monaco.editor.createModel('(module\n 🚀\n)\n', 'wat')
@@ -241,7 +210,7 @@ export default defineComponent({
       }))
 
       const htmlModel = monaco.editor.createModel('', 'html')
-      const htmlEditor = monaco.editor.create(htmlPane, Object.assign({}, commonEditorOptions, {
+      htmlEditor = monaco.editor.create(htmlPane, Object.assign({}, commonEditorOptions, {
         model: htmlModel
       }))
 
@@ -261,24 +230,18 @@ export default defineComponent({
           if (element.id == 'binaryTab') {
             binaryEditor.setValue('(module\n 🚀\n)\n')
             setTimeout(() => this.compile(), 10)
-          } else if (element.id == 'playTab') {
-            const serialize = () => {
-              return 'data:text/html;base64,' + btoa([
-                '<script>\n',
-                'async function compile() {\n',
-                '  return await WebAssembly.compile(new Uint8Array([', this.module_wasm.join(','), ']));\n',
-                '}\n',
-                this.module_js.replace(/^export async function instantiate\(/m, 'async function instantiate('), '<', '/script>\n\n',
-                htmlEditor.getValue().trimRight()
-              ].join(''))
+          } else if (element.id == 'htmlTab') {
+            if (!this.didCompile) {
+              await this.compile()
             }
-            if (this.didCompile) {
-              (this.$refs as any).playFrame.src = serialize()
-            } else {
-              (this.$refs as any).playFrame.src = 'data:text/html;base64,Q29tcGlsaW5nLi4u'; // Compiling...
-              await this.compile();
-              (this.$refs as any).playFrame.src = serialize();
-            }
+
+            const test = defaultTest
+              .replace('REPLACE_ABI', JSON.stringify(JSON.parse(abiEditor.getValue())))
+              .replace('REPLACE_WASM', 'new Uint8Array([' + this.contract_wasm.join(',') + '])');
+
+            htmlEditor.setValue(test);
+
+            (this.$refs as any).playFrame.src = 'data:text/html;base64,' + btoa(test);
           }
         })
       }
@@ -286,9 +249,8 @@ export default defineComponent({
 
     // Compiles the source to WebAssembly
     async compile() {
-      const memoryStream = asc.createMemoryStream()
       const sources: any = {
-        'module.ts': sourceEditor.getValue(),
+        'contract.ts': contractEditor.getValue(),
         '/node_modules/as-chain/index.ts': asChainIndex,
         '/node_modules/as-chain/action.ts': asChainAction,
         '/node_modules/as-chain/asset.ts': asChainAsset,
@@ -334,22 +296,26 @@ export default defineComponent({
 
       const outputs: any = {}
       const options = [
-        'module.ts',
+        'contract.ts',
         '--initialMemory', '1',
         '--runtime', 'stub',
         '--use', 'abort= ',
         '-O2',
-        '--textFile', 'module.wat',
-        '--outFile', 'module.wasm',
-        '--bindings', 'raw',
+        '-t', 'contract.wat',
+        '-o', 'contract.wasm',
+        // '--bindings', 'raw',
       ]
 
+        // const ascOption = require("eosio-asc/dist/ascoption.js");
+        // let apiOption = new ascOption.APIOptionImpl();
+        // const { stdout, error } = await asc.main(options, apiOption);
+        // apiOption.writeExtensionFile();
+
+      const memoryStream = asc.createMemoryStream()
       const { stdout, error } = await asc.main(options, {
-        // checkAll: true,
         stdout: memoryStream,
         stderr: memoryStream,
         readFile: (name: string) => {
-          // alert(name)
           return Object.prototype.hasOwnProperty.call(sources, name) ? sources[name] : null
         },
         writeFile: (name: string, contents: string) => { outputs[name] = contents },
@@ -365,10 +331,10 @@ export default defineComponent({
       if (error) {
         binaryEditor.setValue(output + `(module\n ;; FAILURE ${error.message}\n)\n`)
       } else {
-        this.module_wat = outputs['module.wat']
-        this.module_wasm = outputs['module.wasm']
-        this.module_js = outputs['module.js']
-        binaryEditor.setValue(output + this.module_wat)
+        this.contract_wat = outputs['contract.wat']
+        this.contract_wasm = outputs['contract.wasm']
+        this.contract_js = outputs['contract.js']
+        binaryEditor.setValue(output + this.contract_wat)
       }
       this.didCompile = true
 

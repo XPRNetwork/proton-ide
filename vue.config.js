@@ -38,16 +38,23 @@ module.exports = defineConfig({
         type: 'asset/source'
       }
     )
-    
+    config.module.rules.unshift(
+      {
+        test: /\.txt/,
+        resourceQuery: /assembly/,
+        type: 'asset/source'
+      }
+    )
+
     config.resolve.fallback = {
-      path: require.resolve('assemblyscript/util/browser/path.js'),
-      url: require.resolve("assemblyscript/util/browser/url.js"),
-      fs: require.resolve("assemblyscript/util/browser/fs.js"),
+      path: require.resolve('path-browserify'),
+      url: require.resolve("url/"),
+      fs: require.resolve("browserify-fs"),
       module: require.resolve("assemblyscript/util/browser/module.js"),
       util: require.resolve("util/"),
       buffer: require.resolve('buffer-browserify'),
       stream: require.resolve('stream-browserify'),
-      process: require.resolve('assemblyscript/util/browser/process.js')
+      process: require.resolve('process')
     }
 
     if (!config.experiments) {
