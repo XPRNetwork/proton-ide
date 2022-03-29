@@ -31,6 +31,13 @@ module.exports = defineConfig({
         type: 'asset/source'
       }
     )
+    config.module.rules.unshift(
+      {
+        test: /\.as/,
+        resourceQuery: /assembly/,
+        type: 'asset/source'
+      }
+    )
     
     config.resolve.fallback = {
       path: require.resolve('assemblyscript/util/browser/path.js'),

@@ -55,10 +55,12 @@
 
 <script lang="ts">
 import asc from "assemblyscript/asc";
-import { ContractTransform } from "../transform";
+import { ContractTransform } from "./transform";
 import { config as watLanguageConfig, tokens as watLanguageTokens } from './wat'
 import MonacoEditor from 'vue-monaco'
 import { h, defineComponent } from 'vue'
+
+import defaultContract from './defaultContract.as?assembly'
 
 import asChainIndex from 'as-chain/assembly/index.ts?assembly'
 import asChainAction from 'as-chain/assembly/action.ts?assembly'
@@ -193,34 +195,6 @@ export default defineComponent({
       // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'file://as-chain/index.ts');
       // monaco.languages.typescript.typescriptDefaults.addExtraLib(asChainIndex, 'as-chain.ts');
 
-      // Waiting for EDITOR_FONT to load before set it in editor
-      // await document.fonts.load(`2em ${MONACO_EDITOR_FONT}`)
-
-      // Obtain the source provided via the location's hash
-      let source = document.location.hash
-      let html = ''
-      if (source.length > 1) {
-        source = source.substr(1)
-        try {
-          source = atob(source)
-        } catch (e: any) {
-          source = `/* ${e.message} */`
-        }
-        if (source.startsWith('#!') && !source.startsWith('#!html')) {
-          let end = source.indexOf('\n')
-          if (!end) end = source.length
-          // this.deserializeCompilerOptions(source.substring(2, end))
-          source = source.substring(end + 1)
-        }
-        const htmlMatch = /^#!html$/m.exec(source)
-        if (htmlMatch) {
-          html = source.substring(htmlMatch.index + htmlMatch[0].length).trim() + '\n'
-          source = source.substring(0, htmlMatch.index).trimRight() + '\n'
-        }
-      } else {
-        source = ''
-      }
-
       // Common editor options
       const commonEditorOptions = {
         value: '',
@@ -254,7 +228,7 @@ export default defineComponent({
       const abiPane = document.getElementById('abi')
 
       // Create editor panes
-      const sourceModel = monaco.editor.createModel(source, 'typescript')
+      const sourceModel = monaco.editor.createModel(defaultContract, 'typescript')
       sourceEditor = monaco.editor.create(sourcePane, Object.assign({}, commonEditorOptions, {
         model: sourceModel,
       }))
@@ -266,7 +240,7 @@ export default defineComponent({
         readOnly: true
       }))
 
-      const htmlModel = monaco.editor.createModel(html, 'html')
+      const htmlModel = monaco.editor.createModel('', 'html')
       const htmlEditor = monaco.editor.create(htmlPane, Object.assign({}, commonEditorOptions, {
         model: htmlModel
       }))

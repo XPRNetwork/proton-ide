@@ -1,4 +1,4 @@
-/// <reference path="./assemblyscript.generated.d.ts" />
+/// <reference path="./types/assemblyscript.generated.d.ts" />
 declare module "assemblyscript/asc" {
     /**
      * @fileoverview Command line options utility definitions.

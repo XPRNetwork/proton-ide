@@ -12,7 +12,7 @@
     "as-chain": "^0.0.16",
     "assemblyscript": "^0.20.3",
     "core-js": "^3.8.3",
-    "eosio-asc": "^0.2.50",
+    "eosio-asc": "^0.2.53",
     "handlebars": "^4.7.7",
     "monaco-editor": "^0.20.0",
     "ts-dedent": "^2.2.0",
