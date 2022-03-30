@@ -1,11 +1,10 @@
 <template>
-  <div>
+  <div class="relative">
+    <div v-if="loading" id="loading"/>
+
     <div id="header">
       <h1>AssemblyScript Editor</h1>
       <p><a href="introduction.html" target="_blank" rel="noopener">Language documentation</a></p>
-    </div>
-    <div v-if="loading" id="loading">
-
     </div>
 
     <div id="buttons">
@@ -84,7 +83,7 @@ export default defineComponent({
   data () {
     return {
       code: '',
-      loading: false,
+      loading: true,
 
       // Options
       optionUseRe: /^(\w+)=(\w+(\/\w+|\.\w+)*)$/,
@@ -201,6 +200,9 @@ export default defineComponent({
           }
         })
       }
+
+      // Finally, hide the loading animation
+      this.loading = false
     },
 
     // Compiles the source to WebAssembly
@@ -289,25 +291,12 @@ export default defineComponent({
           evt.preventDefault()
         }
       }, { passive: false })
-
-      // Finally, hide the loading animation
-      this.loading = false
     }
   }
 })
 </script>
 
 <style>
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-      font-size: 16px;
-      color: #aaa;
-    }
-
     /* Header (not visible if sandboxed) */
     #header {
       display: none;
