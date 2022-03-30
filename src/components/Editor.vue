@@ -223,13 +223,16 @@ export default defineComponent({
               await this.compile()
             }
 
-            const test = defaultTest
-              .replace('REPLACE_ABI', JSON.stringify(JSON.parse(abiEditor.getValue())))
-              .replace('REPLACE_WASM', 'new Uint8Array([' + this.contract_wasm.join(',') + '])');
-
-            htmlEditor.setValue(test);
-
-            (this.$refs as any).playFrame.src = 'data:text/html;base64,' + btoa(test);
+            if (!htmlEditor.getValue()) {
+              htmlEditor.setValue(defaultTest);
+            }
+          } else if (element.id == 'playTab') {
+            (this.$refs as any).playFrame.src = 'data:text/html;base64,' + btoa(
+              htmlEditor
+                .getValue()
+                .replace('INJECT_ABI', JSON.stringify(JSON.parse(abiEditor.getValue())))
+                .replace('INJECT_WASM', 'new Uint8Array([' + this.contract_wasm.join(',') + '])')
+            );
           }
         })
       }
