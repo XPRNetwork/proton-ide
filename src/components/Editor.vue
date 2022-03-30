@@ -8,8 +8,8 @@
     </div>
 
     <div id="buttons">
-      <a class="button share" title="Copy shareable Link">🔗</a>
-      <a class="button options" title="Compiler Options">⚙️</a>
+      <a class="button options" title="Compiler Options" v-if="contract_wasm" @click="downloadWasm">💾 WASM</a>
+      <a class="button options" title="Compiler Options" v-if="contract_wasm" @click="downloadAbi">💾 ABI</a>
     </div>
 
     <div id="clipboard" class="popup">
@@ -21,7 +21,7 @@
       <a id="binaryTab" class="tab binary" title="Click to Compile">contract.wat</a>
       <a id="abiTab" class="tab abi" title="ABI">contract.abi</a>
       <a id="htmlTab" class="tab html" title="JavaScript host code">test.html</a>
-      <a id="playTab" class="tab play" title="Click to Compile & Run">Run</a>
+      <a id="playTab" class="tab play" title="Click to Compile & Run">Run Tests</a>
     </div>
 
     <div id="panes">
@@ -88,13 +88,43 @@ export default defineComponent({
       // Options
       optionUseRe: /^(\w+)=(\w+(\/\w+|\.\w+)*)$/,
       contract_wat: '(module)\n',
-      contract_wasm: new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]),
+      contract_wasm: undefined,
       contract_js: '\n',
       didCompile: false,
     }
   },
 
   methods: {
+    download(filename, body, extension) {
+      const blob = new Blob([body])
+      const fileName = `${filename}.${extension}`
+      if ((navigator as any).msSaveBlob) {
+        // IE 10+
+        // TODO remove IE implementation as  outdated
+        ;(navigator as any).msSaveBlob(blob, fileName)
+      } else {
+        const link = document.createElement('a')
+        // Browsers that support HTML5 download attribute
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob)
+          link.setAttribute('href', url)
+          link.setAttribute('download', fileName)
+          link.style.visibility = 'hidden'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        }
+      }
+    },
+
+    downloadWasm () {
+      this.download(`contract`, this.contract_wasm, 'wasm')
+    },
+
+    downloadAbi () {
+      this.download(`contract`, abiEditor.getValue(), 'abi')
+    },
+
     async editorDidMount() {
       const monaco = (this.$refs as any).editor.monaco
 
@@ -386,6 +416,7 @@ export default defineComponent({
       text-decoration: none !important;
       cursor: pointer;
       opacity: 0.5;
+      margin-left: 10px;
     }
     #buttons a:hover {
       opacity: 1.0;
