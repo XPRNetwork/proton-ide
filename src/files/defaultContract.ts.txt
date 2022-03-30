@@ -1,4 +1,4 @@
-import { Name, Table, MultiIndex, Contract, check, table, action, contract, requireAuth, packer, primary } from 'as-chain'
+import { Name, Table, MultiIndex, Contract, check, requireAuth } from 'as-chain'
 
 @packer
 class KV {

@@ -142,12 +142,15 @@ export default defineComponent({
         allowNonTsExtensions: true,
         moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
         module: monaco.languages.typescript.ModuleKind.CommonJS,
+        allowSyntheticDefaultImports: true,
         // noEmit: true,
+        esModuleInterop: true,
         experimentalDecorators: true,
       });
 
+      console.log(F.asChainTypes.default)
       monaco.languages.typescript.typescriptDefaults.addExtraLib(asc.definitionFiles.assembly, "assemblyscript/std/assembly/index.d.ts")
-      monaco.languages.typescript.typescriptDefaults.addExtraLib(F.asChainTypes, "as-chain/index.d.ts");
+      monaco.languages.typescript.typescriptDefaults.addExtraLib(F.asChainTypes.default, "as-chain/index.d.ts");
 
       // Common editor options
       const commonEditorOptions = {
@@ -255,6 +258,10 @@ export default defineComponent({
         '--initialMemory', '1',
         '--runtime', 'stub',
         '--use', 'abort= ',
+        '--disable', 'mutable-globals',
+        '--disable', 'sign-extension',
+        '--disable', 'nontrapping-f2i',
+        '--disable', 'bulk-memory',
         '-O2'
       ]
     
@@ -266,9 +273,12 @@ export default defineComponent({
         transforms: [new ContractTransform(abiEditor)]
       });
 
-      const { error: initError } = await asc.main(options, apiOptions);
+      const { error: initError, stderr } = await asc.main(options, apiOptions);
       if (initError) {
-        alert(initError)
+        alert(`
+          ${initError}
+          ${stderr.toString()}
+        `)
         return
       }
 

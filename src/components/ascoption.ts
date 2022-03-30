@@ -50,7 +50,7 @@ function optimizeCode(code) {
 }
 
 function modifySourceText(sourceText: string, point: ModifyPoint): string {
-    console.log("++++++++++ascoption.ts:modifySourceText:", point.code);
+    // console.log("++++++++++ascoption.ts:modifySourceText:", point.code);
     if (point.mode == ModifyType.REPLACE) {
         var prefix = sourceText.substring(0, point.range.start);
         var suffix = sourceText.substring(point.range.end, sourceText.length);
@@ -75,7 +75,7 @@ export class APIOptionImpl implements APIOptions {
     }
 
     readFile(filename: string, baseDir: string) : string | null {
-        console.log("++++++++++ascoption.ts:readFile:", filename, baseDir);
+        // console.log("++++++++++ascoption.ts:readFile:", filename, baseDir);
         let name = path.resolve(baseDir, filename);
         try {
             let text: string | null = null
@@ -98,7 +98,7 @@ export class APIOptionImpl implements APIOptions {
                     if (a.mode != b.mode) return a.mode - b.mode;
                     return (b.range.end - a.range.end); 
                 }).forEach(item => {
-                    console.log("++++++point.code:", item.code);
+                    // console.log("++++++point.code:", item.code);
                     text = modifySourceText(text, item);
                 });
 

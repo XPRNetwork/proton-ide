@@ -9,10 +9,10 @@
   },
   "dependencies": {
     "as-bignum": "^0.2.18",
-    "as-chain": "^0.0.16",
+    "as-chain": "^0.0.20",
     "assemblyscript": "^0.20.3",
     "core-js": "^3.8.3",
-    "eosio-asc": "^0.2.56",
+    "eosio-asc": "^0.2.59",
     "handlebars": "^4.7.7",
     "monaco-editor": "^0.20.0",
     "ts-dedent": "^2.2.0",
