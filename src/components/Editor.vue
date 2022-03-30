@@ -56,12 +56,13 @@
 <script lang="ts">
 import { h, defineComponent } from 'vue'
 import MonacoEditor from 'vue-monaco'
-import theme from './theme.json'
-import { config as watLanguageConfig, tokens as watLanguageTokens } from './wat'
+import theme from '../theme/theme.json'
+import { config as watLanguageConfig, tokens as watLanguageTokens } from '../theme/wat'
 import contractSources from '../files/contractSources'
 import * as F from '../files/files'
 import defaultContract from '../files/defaultContract.ts.txt?assembly'
 import defaultTest from '../files/defaultTest.ts.txt?assembly'
+import process from "process"
 
 import asc from "assemblyscript/asc";
 import { ContractTransform } from "./transform";
@@ -209,6 +210,9 @@ export default defineComponent({
         ...contractSources
       }
 
+      // Reset process
+      process.sourceModifier = undefined
+
       // Create mem
       const memoryStream = asc.createMemoryStream()
 
@@ -230,20 +234,22 @@ export default defineComponent({
         transforms: [new ContractTransform(abiEditor)]
       });
 
-      const { stdout: initStdOut, error: initError } = await asc.main(options, apiOptions);
+      const { error: initError } = await asc.main(options, apiOptions);
       if (initError) {
         alert(initError)
         return
       }
 
+      // Remove Transforms
       apiOptions.transforms = []
 
+      // Add outputs
       options.push(
         '-t', 'contract.wat',
         '-o', 'contract.wasm',
       )
 
-      // Repeat
+      // Build contract
       const { stdout, error } = await asc.main(options, apiOptions);
       apiOptions.writeExtensionFile();
       
