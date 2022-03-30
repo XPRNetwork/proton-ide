@@ -1,4 +1,4 @@
-# ts-test
+# proton-ide
 
 ## Project setup
 ```
