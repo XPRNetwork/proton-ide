@@ -227,6 +227,10 @@ export default defineComponent({
               htmlEditor.setValue(defaultTest);
             }
           } else if (element.id == 'playTab') {
+            if (!htmlEditor.getValue()) {
+              htmlEditor.setValue(defaultTest);
+            }
+
             (this.$refs as any).playFrame.src = 'data:text/html;base64,' + btoa(
               htmlEditor
                 .getValue()
