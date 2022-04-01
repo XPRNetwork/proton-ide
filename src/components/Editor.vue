@@ -2,14 +2,14 @@
   <div class="relative">
     <div v-if="loading" id="loading"/>
 
-    <div id="header">
+    <!-- <div id="header">
       <h1>AssemblyScript Editor</h1>
       <p><a href="introduction.html" target="_blank" rel="noopener">Language documentation</a></p>
-    </div>
+    </div> -->
 
     <div id="buttons">
-      <a class="button options" title="Compiler Options" v-if="contract_wasm" @click="downloadWasm">💾 WASM</a>
-      <a class="button options" title="Compiler Options" v-if="contract_wasm" @click="downloadAbi">💾 ABI</a>
+      <a class="button options" title="Compiler Options" v-if="contract_wasm.length" @click="downloadWasm">💾 WASM</a>
+      <a class="button options" title="Compiler Options" v-if="contract_wasm.length" @click="downloadAbi">💾 ABI</a>
     </div>
 
     <div id="clipboard" class="popup">
@@ -25,10 +25,10 @@
     </div>
 
     <div id="panes">
-      <div id="source" class="pane source active" aria-labelledby="sourceTab"></div>
-      <div id="binary" class="pane binary" aria-labelledby="binaryTab"></div>
-      <div id="abi" class="pane abi" aria-labelledby="abiTab"></div>
-      <div id="html" class="pane html" aria-labelledby="htmlTab"></div>
+      <div id="source" ref="sourcePane" class="pane source active" aria-labelledby="sourceTab"></div>
+      <div id="binary" ref="binaryPane" class="pane binary" aria-labelledby="binaryTab"></div>
+      <div id="abi" ref="abiPane" class="pane abi" aria-labelledby="abiTab"></div>
+      <div id="html" ref="htmlPane" class="pane html" aria-labelledby="htmlTab"></div>
       <div id="play" class="pane play" aria-labelledby="htmlTab">
         <iframe
           id="play-frame"
@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts">
-import { h, defineComponent } from 'vue'
+import { h, defineComponent, onMounted, ref } from 'vue'
 import MonacoEditor from 'vue-monaco'
 import theme from '../theme/theme.json'
 import { config as watLanguageConfig, tokens as watLanguageTokens } from '../theme/wat'
@@ -62,6 +62,7 @@ import * as F from '../files/files'
 import defaultContract from '../files/defaultContract.ts.txt?assembly'
 import defaultTest from '../files/defaultTest.ts.txt?assembly'
 import process from "process"
+import { useStorage } from '@vueuse/core'
 
 import asc from "assemblyscript/asc";
 import { ContractTransform } from "./transform";
@@ -80,22 +81,23 @@ export default defineComponent({
     MonacoEditor
   },
 
-  data () {
-    return {
-      code: '',
-      loading: true,
-
+  setup () {
+    const code = useStorage('code', '')
+    const loading = ref(true)
+    const editor = ref(undefined)
+    const playFrame = ref(undefined)
+    const sourcePane = ref(undefined)
+    const binaryPane = ref(undefined)
+    const htmlPane = ref(undefined)
+    const abiPane = ref(undefined)
+    
       // Options
-      optionUseRe: /^(\w+)=(\w+(\/\w+|\.\w+)*)$/,
-      contract_wat: '(module)\n',
-      contract_wasm: undefined,
-      contract_js: '\n',
-      didCompile: false,
-    }
-  },
+    const contract_wat = ref('(module)\n')
+    const contract_wasm = ref([])
+    const contract_js = ref('\n')
+    const didCompile = ref(false)
 
-  methods: {
-    download(filename, body, extension) {
+    function download(filename, body, extension) {
       const blob = new Blob([body])
       const fileName = `${filename}.${extension}`
       if ((navigator as any).msSaveBlob) {
@@ -115,18 +117,18 @@ export default defineComponent({
           document.body.removeChild(link)
         }
       }
-    },
+    }
 
-    downloadWasm () {
-      this.download(`contract`, this.contract_wasm, 'wasm')
-    },
+    function downloadWasm () {
+      download(`contract`, contract_wasm.value, 'wasm')
+    }
 
-    downloadAbi () {
-      this.download(`contract`, abiEditor.getValue(), 'abi')
-    },
+    function downloadAbi () {
+      download(`contract`, abiEditor.getValue(), 'abi')
+    }
 
-    async editorDidMount() {
-      const monaco = (this.$refs as any).editor.monaco
+    async function editorDidMount() {
+      const monaco = editor.value.monaco
 
       // Add WebAssembly Text Format language
       monaco.languages.register({ id: 'wat' })
@@ -148,7 +150,6 @@ export default defineComponent({
         experimentalDecorators: true,
       });
 
-      console.log(F.asChainTypes.default)
       monaco.languages.typescript.typescriptDefaults.addExtraLib(asc.definitionFiles.assembly, "assemblyscript/std/assembly/index.d.ts")
       monaco.languages.typescript.typescriptDefaults.addExtraLib(F.asChainTypes.default, "as-chain/index.d.ts");
 
@@ -178,32 +179,26 @@ export default defineComponent({
         cursorBlinking: 'smooth'
       }
 
-      // Get panes
-      const sourcePane = document.getElementById('source')
-      const binaryPane = document.getElementById('binary')
-      const htmlPane = document.getElementById('html')
-      const abiPane = document.getElementById('abi')
-
       // Create editor panes
       const contractModel = monaco.editor.createModel(defaultContract, 'typescript')
-      contractEditor = monaco.editor.create(sourcePane, Object.assign({}, commonEditorOptions, {
+      contractEditor = monaco.editor.create(sourcePane.value, Object.assign({}, commonEditorOptions, {
         model: contractModel,
       }))
 
       const binaryModel = monaco.editor.createModel('(module\n 🚀\n)\n', 'wat')
       binaryModel.updateOptions({ tabSize: 1 })
-      binaryEditor = monaco.editor.create(binaryPane, Object.assign({}, commonEditorOptions, {
+      binaryEditor = monaco.editor.create(binaryPane.value, Object.assign({}, commonEditorOptions, {
         model: binaryModel,
         readOnly: true
       }))
 
       const htmlModel = monaco.editor.createModel('', 'html')
-      htmlEditor = monaco.editor.create(htmlPane, Object.assign({}, commonEditorOptions, {
+      htmlEditor = monaco.editor.create(htmlPane.value, Object.assign({}, commonEditorOptions, {
         model: htmlModel
       }))
 
       const abiModel = monaco.editor.createModel('', 'html')
-      abiEditor = monaco.editor.create(abiPane, Object.assign({}, commonEditorOptions, {
+      abiEditor = monaco.editor.create(abiPane.value, Object.assign({}, commonEditorOptions, {
         model: abiModel
       }))
 
@@ -217,10 +212,10 @@ export default defineComponent({
           pane!.classList.add('active')
           if (element.id == 'binaryTab') {
             binaryEditor.setValue('(module\n 🚀\n)\n')
-            setTimeout(() => this.compile(), 10)
+            setTimeout(() => compile(), 10)
           } else if (element.id == 'htmlTab') {
-            if (!this.didCompile) {
-              await this.compile()
+            if (!didCompile.value) {
+              await compile()
             }
 
             if (!htmlEditor.getValue()) {
@@ -231,22 +226,22 @@ export default defineComponent({
               htmlEditor.setValue(defaultTest);
             }
 
-            (this.$refs as any).playFrame.src = 'data:text/html;base64,' + btoa(
+            playFrame.value.src = 'data:text/html;base64,' + btoa(
               htmlEditor
                 .getValue()
                 .replace('INJECT_ABI', JSON.stringify(JSON.parse(abiEditor.getValue())))
-                .replace('INJECT_WASM', 'new Uint8Array([' + this.contract_wasm.join(',') + '])')
+                .replace('INJECT_WASM', 'new Uint8Array([' + contract_wasm.value.join(',') + '])')
             );
           }
         })
       }
 
       // Finally, hide the loading animation
-      this.loading = false
-    },
+      loading.value = false
+    }
 
     // Compiles the source to WebAssembly
-    async compile() {
+    async function compile() {
       const sources: any = {
         'contract.ts': contractEditor.getValue(),
         ...contractSources
@@ -311,17 +306,17 @@ export default defineComponent({
       if (error) {
         binaryEditor.setValue(output + `(module\n ;; FAILURE ${error.message}\n)\n`)
       } else {
-        this.contract_wat = outputs['contract.wat']
-        this.contract_wasm = outputs['contract.wasm']
-        this.contract_js = outputs['contract.js']
-        binaryEditor.setValue(output + this.contract_wat)
+        contract_wat.value = outputs['contract.wat']
+        contract_wasm.value = outputs['contract.wasm']
+        contract_js.value = outputs['contract.js']
+        binaryEditor.setValue(output + contract_wat.value)
       }
-      this.didCompile = true
+      didCompile.value = true
 
       return error
-    },
+    }
 
-    mounted () {
+    onMounted(() => {
       const isIframe = window.parent !== window
       if (!isIframe) {
         document.getElementById('header')!.style.display = 'block'
@@ -338,6 +333,23 @@ export default defineComponent({
           evt.preventDefault()
         }
       }, { passive: false })
+    })
+
+    return {
+      code,
+      loading,
+      contract_wasm,
+      contract_wat,
+      contract_js,
+      downloadWasm,
+      downloadAbi,
+      editorDidMount,
+      playFrame,
+      editor,
+      sourcePane,
+      binaryPane,
+      htmlPane,
+      abiPane,
     }
   }
 })
