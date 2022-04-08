@@ -10,7 +10,7 @@
   "dependencies": {
     "@vueuse/core": "^8.2.3",
     "as-bignum": "^0.2.18",
-    "as-chain": "^0.0.20",
+    "as-chain": "^0.0.32",
     "assemblyscript": "^0.20.3",
     "core-js": "^3.8.3",
     "eosio-asc": "^0.2.59",

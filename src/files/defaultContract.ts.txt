@@ -24,7 +24,7 @@ class AccountKVTable extends Table {
 }
 class AccountKV extends AccountKVTable {}
 
-@contract("kv")
+@contract
 class KvContract extends Contract {
     kvsTable: MultiIndex<AccountKV> = new MultiIndex<AccountKV>(this.receiver, this.receiver, Name.fromString("kvs"))
 
