@@ -571,3 +571,11 @@ declare module "assemblyscript/asc" {
         afterCompile?(module: Module): void | Promise<void>;
     }
 }
+
+declare namespace NodeJS {
+    interface Process {
+        sourceModifier?: any;
+        libPaths?: any;
+        userEntryFilePath?: any;
+    }
+}
