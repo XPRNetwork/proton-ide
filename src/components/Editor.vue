@@ -58,7 +58,7 @@ import MonacoEditor from 'vue-monaco'
 import theme from '../theme/theme.json'
 import { config as watLanguageConfig, tokens as watLanguageTokens } from '../theme/wat'
 import contractSources from '../files/contractSources'
-import * as F from '../files/files'
+import * as F from '../files/contractSources'
 import defaultContract from '../files/defaultContract.ts.txt?assembly'
 import defaultTest from '../files/defaultTest.ts.txt?assembly'
 import process from "process"
@@ -151,7 +151,7 @@ export default defineComponent({
       });
 
       monaco.languages.typescript.typescriptDefaults.addExtraLib(asc.definitionFiles.assembly, "assemblyscript/std/assembly/index.d.ts")
-      monaco.languages.typescript.typescriptDefaults.addExtraLib(F.asChainTypes.default, "as-chain/index.d.ts");
+      monaco.languages.typescript.typescriptDefaults.addExtraLib(F.protonTscTypes.default, "proton-tsc/index.d.ts");
 
       // Common editor options
       const commonEditorOptions = {

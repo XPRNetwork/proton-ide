@@ -1,6 +1,6 @@
 import { APIOptions } from "assemblyscript/asc";
-import { SourceModifier, ModifyPoint, ModifyType } from "eosio-asc/src/preprocess";
-import { EosioUtils } from "eosio-asc/src/utils/utils";
+import { SourceModifier, ModifyPoint, ModifyType } from "proton-asc/src/preprocess";
+import { EosioUtils } from "proton-asc/src/utils/utils";
 import * as path from "path";
 import * as fs from "fs";
 import process from "process";
@@ -49,8 +49,7 @@ function optimizeCode(code) {
     return code;
 }
 
-function modifySourceText(sourceText: string, point: ModifyPoint): string {
-    // console.log("++++++++++ascoption.ts:modifySourceText:", point.code);
+function modifySourceText(sourceText, point) {
     if (point.mode == ModifyType.REPLACE) {
         var prefix = sourceText.substring(0, point.range.start);
         var suffix = sourceText.substring(point.range.end, sourceText.length);
@@ -64,55 +63,66 @@ function modifySourceText(sourceText: string, point: ModifyPoint): string {
         return sourceText;
     }
     return sourceText;
-}
+};
 
 let sources = {}
 export class APIOptionImpl implements APIOptions {
     transforms = []
+
     constructor (_sources: any, options: APIOptions) {
         Object.assign(this, options);
         sources = _sources;
     }
 
     readFile(filename: string, baseDir: string) : string | null {
-        // console.log("++++++++++ascoption.ts:readFile:", filename, baseDir);
-        let name = path.resolve(baseDir, filename);
-        try {
-            let text: string | null = null
-            if (fs.readFileSync) {
-                text = fs.readFileSync(name, "utf8")
+        var name = path.resolve(baseDir, filename);
+        var text_1;
+        if (fs.readFileSync) {
+            text_1 = fs.readFileSync(name, "utf8")
+        } else {
+            if (Object.prototype.hasOwnProperty.call(sources, name)) {
+                text_1 = sources[name]
             } else {
-                if (Object.prototype.hasOwnProperty.call(sources, name)) {
-                    text = sources[name]
-                } else {
-                    throw new Error('File not found')
-                }
+                console.error(`File ${name} not found`)
+                return null
             }
-
-
-            let sourceModifier = process.sourceModifier ? process.sourceModifier : new SourceModifier();
-            let relativePath = path.relative(baseDir, name).split("\\").join("/");
-            if (sourceModifier.fileExtMap.has(relativePath)) {
-                let extCodes = sourceModifier.fileExtMap.get(relativePath);
-                extCodes!.sort((a: ModifyPoint, b: ModifyPoint) => {
-                    if (a.mode != b.mode) return a.mode - b.mode;
-                    return (b.range.end - a.range.end); 
-                }).forEach(item => {
-                    // console.log("++++++point.code:", item.code);
-                    text = modifySourceText(text, item);
-                });
-
-                let importLang = `import * as _chain from "as-chain";\n`;
-                text = importLang + text;
-                text = optimizeCode(text);
-                sourceModifier.fileExtension.set(filename, text);
-                // console.log(`The file ${filename} extension: ${text_1}`);
-            }
-            return text;
-        } catch (e) {
-            console.log(`Process file: ${filename} failed. Details: ${e}`);
-            return null;
         }
+
+
+        var sourceModifier = process.sourceModifier ? process.sourceModifier : new SourceModifier();
+        let relativePath = path.relative(baseDir, name).split("\\").join("/");
+
+        // Transform library imports
+        if (relativePath.indexOf('/proton-tsc/') === -1 && !sourceModifier.fileExtMap.has(relativePath)) {
+            const alternativePath = relativePath.replace(/.*node_modules/, '~lib').replace('/assembly', '')
+            if (sourceModifier.fileExtMap.has(alternativePath)) {
+                relativePath = alternativePath
+            }
+        }
+        
+        // Look for path in source modifier
+        if (sourceModifier.fileExtMap.has(relativePath)) {
+            var extCodes = sourceModifier.fileExtMap.get(relativePath);
+            extCodes.sort((a, b) => {
+                if (a.mode != b.mode) return a.mode - b.mode;
+                return (b.range.end - a.range.end); 
+            }).forEach(function (item) {
+                text_1 = modifySourceText(text_1, item);
+            });
+            let importLang = `import * as _chain from "proton-tsc";\n`;
+
+            // console.log("+++++++process.libPaths:", process.libPaths);
+            if (process.libPaths && text_1.indexOf("apply(") >= 0) {
+                process.libPaths.forEach((value, key) => {
+                    importLang += `import * as ${value} from '${key}';\n`
+                });    
+            }
+            text_1 = importLang + text_1;
+            text_1 = optimizeCode(text_1);
+            sourceModifier.fileExtension.set(filename, text_1);
+            // console.log(`The file ${filename} extension: ${text_1}`);
+        }
+        return text_1;
     }
 
     writeExtensionFile (baseDir?: string) {
@@ -121,6 +131,8 @@ export class APIOptionImpl implements APIOptions {
             baseDir = sourceModifier.entryDir;
             let filePath = path.join(baseDir, path.basename(key));
             sources[filePath] = value;
+            // if (!fs.existsSync(path.dirname(filePath))) mkdirp(path.dirname(filePath));
+            // fs.writeFileSync(filePath, value);
         }
     };
 

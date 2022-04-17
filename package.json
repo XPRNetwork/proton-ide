@@ -10,12 +10,13 @@
   "dependencies": {
     "@vueuse/core": "^8.2.3",
     "as-bignum": "^0.2.18",
-    "as-chain": "^0.0.32",
+    "as-chain": "^0.0.39",
     "assemblyscript": "^0.20.3",
     "core-js": "^3.8.3",
-    "eosio-asc": "^0.2.59",
     "handlebars": "^4.7.7",
     "monaco-editor": "^0.20.0",
+    "proton-asc": "^0.2.90",
+    "proton-tsc": "^0.2.4",
     "ts-dedent": "^2.2.0",
     "vue": "^3.2.13",
     "vue-class-component": "^8.0.0-0",
@@ -46,7 +47,8 @@
     "monaco-editor": "0.20.0",
     "monaco-editor-webpack-plugin": "1.9.1",
     "vue-monaco/monaco-editor": "0.20.0",
-    "eosio-asc/assemblyscript": "^0.20.3",
+    "proton-asc/assemblyscript": "^0.20.3",
+    "proton-tsc/assemblyscript": "^0.20.3",
     "assemblyscript": "^0.20.3"
   }
 }

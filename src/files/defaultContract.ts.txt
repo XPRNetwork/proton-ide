@@ -1,4 +1,4 @@
-import { Name, Table, MultiIndex, Contract, check, requireAuth } from 'as-chain'
+import { Name, Table, MultiIndex, Contract, check, requireAuth } from 'proton-tsc'
 
 @packer
 class KV {

@@ -1,7 +1,7 @@
-declare module 'as-chain/assembly/action' {
+declare module 'proton-tsc/assembly/action' {
   /// <reference types="assembly" />
-  import { Packer } from "as-chain/assembly/serializer";
-  import { Name } from "as-chain/assembly/name";
+  import { Packer } from "proton-tsc/assembly/serializer";
+  import { Name } from "proton-tsc/assembly/name";
   export function getSender(): Name;
   export function readActionData(): u8[];
   export function unpackActionData<T extends Packer>(): T;
@@ -35,10 +35,10 @@ declare module 'as-chain/assembly/action' {
   }
 
 }
-declare module 'as-chain/assembly/asset' {
+declare module 'proton-tsc/assembly/asset' {
   /// <reference types="assembly" />
-  import { Packer } from "as-chain/assembly/serializer";
-  import { Name } from "as-chain/assembly/name";
+  import { Packer } from "proton-tsc/assembly/serializer";
+  import { Name } from "proton-tsc/assembly/name";
   export function isValid(sym: u64): bool;
   export class Symbol implements Packer {
       value: u64;
@@ -113,10 +113,10 @@ declare module 'as-chain/assembly/asset' {
   }
 
 }
-declare module 'as-chain/assembly/bignum' {
+declare module 'proton-tsc/assembly/bignum' {
   /// <reference types="assembly" />
   import { i128, u128, u256 } from "as-bignum";
-  import { Packer } from "as-chain/assembly/serializer";
+  import { Packer } from "proton-tsc/assembly/serializer";
   export class I128 extends i128 implements Packer {
       pack(): u8[];
       unpack(data: u8[]): usize;
@@ -139,9 +139,9 @@ declare module 'as-chain/assembly/bignum' {
   }
 
 }
-declare module 'as-chain/assembly/crypto' {
+declare module 'proton-tsc/assembly/crypto' {
   /// <reference types="assembly" />
-  import { Packer } from "as-chain/assembly/serializer";
+  import { Packer } from "proton-tsc/assembly/serializer";
   export class Checksum160 implements Packer {
       data: u8[];
       pack(): u8[];
@@ -241,9 +241,9 @@ declare module 'as-chain/assembly/crypto' {
   export function ripemd160(data: u8[]): Checksum160;
 
 }
-declare module 'as-chain/assembly/dbi64' {
+declare module 'proton-tsc/assembly/dbi64' {
   /// <reference types="assembly" />
-  import { Packer } from "as-chain/assembly/serializer";
+  import { Packer } from "proton-tsc/assembly/serializer";
   export function say_hello(): void;
   export interface PrimaryValue extends Packer {
       getPrimaryValue(): u64;
@@ -274,11 +274,11 @@ declare module 'as-chain/assembly/dbi64' {
   }
 
 }
-declare module 'as-chain/assembly/debug' {
+declare module 'proton-tsc/assembly/debug' {
   /// <reference types="assembly" />
-  import { I128, U128 } from "as-chain/assembly/bignum";
-  import { Float128 } from "as-chain/assembly/float128";
-  import { Name } from "as-chain/assembly/name";
+  import { I128, U128 } from "proton-tsc/assembly/bignum";
+  import { Float128 } from "proton-tsc/assembly/float128";
+  import { Name } from "proton-tsc/assembly/name";
   export function printui(n: u64): void;
   export function prints(s: string): void;
   export function printi(n: i64): void;
@@ -294,7 +294,7 @@ declare module 'as-chain/assembly/debug' {
   export function printn(name: Name): void;
 
 }
-declare module 'as-chain/assembly/env' {
+declare module 'proton-tsc/assembly/env' {
   /// <reference types="assembly" />
   export function memcpy(destination: usize, source: usize, num: usize): usize;
   export function printi(n: i64): void;
@@ -404,9 +404,9 @@ declare module 'as-chain/assembly/env' {
   export function get_context_free_data(index: u32, buff_ptr: usize, size: u32): i32;
 
 }
-declare module 'as-chain/assembly/float128' {
+declare module 'proton-tsc/assembly/float128' {
   /// <reference types="assembly" />
-  import { Packer } from "as-chain/assembly/serializer";
+  import { Packer } from "proton-tsc/assembly/serializer";
   export class Float128 implements Packer {
       data: Array<u64>;
       constructor(lo?: u64, hi?: u64);
@@ -418,13 +418,13 @@ declare module 'as-chain/assembly/float128' {
   }
 
 }
-declare module 'as-chain/assembly/helpers' {
+declare module 'proton-tsc/assembly/helpers' {
   /// <reference types="assembly" />
-  import { PermissionLevel } from "as-chain/assembly/action";
-  import { SecondaryValue } from "as-chain/assembly/idxdb";
-  import { MultiIndex, MultiIndexValue } from "as-chain/assembly/mi";
-  import { Name } from "as-chain/assembly/name";
-  import { Packer } from "as-chain/assembly/serializer";
+  import { PermissionLevel } from "proton-tsc/assembly/action";
+  import { SecondaryValue } from "proton-tsc/assembly/idxdb";
+  import { MultiIndex, MultiIndexValue } from "proton-tsc/assembly/mi";
+  import { Name } from "proton-tsc/assembly/name";
+  import { Packer } from "proton-tsc/assembly/serializer";
   export class ActionWrapperAct {
       action: Name;
       contract: Name;
@@ -466,10 +466,10 @@ declare module 'as-chain/assembly/helpers' {
   }
 
 }
-declare module 'as-chain/assembly/idx128' {
+declare module 'proton-tsc/assembly/idx128' {
   /// <reference types="assembly" />
-  import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "as-chain/assembly/idxdb";
-  import { U128 } from "as-chain/assembly/bignum";
+  import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "proton-tsc/assembly/idxdb";
+  import { U128 } from "proton-tsc/assembly/bignum";
   class IDX128ReturnValue {
       i: SecondaryIterator;
       value: U128;
@@ -495,10 +495,10 @@ declare module 'as-chain/assembly/idx128' {
   export {};
 
 }
-declare module 'as-chain/assembly/idx256' {
+declare module 'proton-tsc/assembly/idx256' {
   /// <reference types="assembly" />
-  import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "as-chain/assembly/idxdb";
-  import { U256 } from "as-chain/assembly/bignum";
+  import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "proton-tsc/assembly/idxdb";
+  import { U256 } from "proton-tsc/assembly/bignum";
   class IDX256ReturnValue {
       i: SecondaryIterator;
       value: U256;
@@ -524,9 +524,9 @@ declare module 'as-chain/assembly/idx256' {
   export {};
 
 }
-declare module 'as-chain/assembly/idx64' {
+declare module 'proton-tsc/assembly/idx64' {
   /// <reference types="assembly" />
-  import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "as-chain/assembly/idxdb";
+  import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "proton-tsc/assembly/idxdb";
   class IDX64ReturnValue {
       i: SecondaryIterator;
       value: u64;
@@ -552,10 +552,10 @@ declare module 'as-chain/assembly/idx64' {
   export {};
 
 }
-declare module 'as-chain/assembly/idxdb' {
+declare module 'proton-tsc/assembly/idxdb' {
   /// <reference types="assembly" />
-  import { U128, U256 } from "as-chain/assembly/bignum";
-  import { Float128 } from "as-chain/assembly/float128";
+  import { U128, U256 } from "proton-tsc/assembly/bignum";
+  import { Float128 } from "proton-tsc/assembly/float128";
   export class SecondaryIterator {
       i: i32;
       primary: u64;
@@ -605,10 +605,10 @@ declare module 'as-chain/assembly/idxdb' {
   }
 
 }
-declare module 'as-chain/assembly/idxf128' {
+declare module 'proton-tsc/assembly/idxf128' {
   /// <reference types="assembly" />
-  import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "as-chain/assembly/idxdb";
-  import { Float128 } from "as-chain/assembly/float128";
+  import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "proton-tsc/assembly/idxdb";
+  import { Float128 } from "proton-tsc/assembly/float128";
   class IDXF128ReturnValue {
       i: SecondaryIterator;
       value: Float128;
@@ -634,9 +634,9 @@ declare module 'as-chain/assembly/idxf128' {
   export {};
 
 }
-declare module 'as-chain/assembly/idxf64' {
+declare module 'proton-tsc/assembly/idxf64' {
   /// <reference types="assembly" />
-  import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "as-chain/assembly/idxdb";
+  import { IDXDB, SecondaryValue, SecondaryIterator, SecondaryReturnValue } from "proton-tsc/assembly/idxdb";
   class IDXF64ReturnValue {
       i: SecondaryIterator;
       value: f64;
@@ -662,39 +662,39 @@ declare module 'as-chain/assembly/idxf64' {
   export {};
 
 }
-declare module 'as-chain/assembly/index' {
-  export { U128, U256 } from "as-chain/assembly/bignum";
-  export { Float128 } from "as-chain/assembly/float128";
-  export { VarInt32, VarUint32, calcPackedVarUint32Length } from "as-chain/assembly/varint";
-  export { DBI64, PrimaryIterator, UNKNOWN_PRIMARY_KEY } from "as-chain/assembly/dbi64";
-  export { IDX64 } from "as-chain/assembly/idx64";
-  export { IDXF64 } from "as-chain/assembly/idxf64";
-  export { IDXF128 } from "as-chain/assembly/idxf128";
-  export { IDX128 } from "as-chain/assembly/idx128";
-  export { IDX256 } from "as-chain/assembly/idx256";
-  export { VariantValue } from "as-chain/assembly/variant";
-  export { assert, check, currentTimePoint, currentTime, currentTimeMs, currentTimeSec, } from "as-chain/assembly/system";
-  export { Microseconds, TimePoint, TimePointSec, BlockTimestamp } from "as-chain/assembly/time";
-  export { prints, printui, print, printString, printArray, printHex, printi, printI128, printU128, printsf, printdf, printqf, printn, } from "as-chain/assembly/debug";
-  export { IDXDB, SecondaryType, SecondaryValue, SecondaryIterator, newSecondaryValue_u64, newSecondaryValue_U128, newSecondaryValue_U256, newSecondaryValue_f64, newSecondaryValue_Float128, getSecondaryValue_u64, getSecondaryValue_U128, getSecondaryValue_U256, getSecondaryValue_f64, getSecondaryValue_Float128, } from "as-chain/assembly/idxdb";
-  export { MultiIndex, MultiIndexValue, SAME_PAYER } from "as-chain/assembly/mi";
-  export { Singleton } from "as-chain/assembly/singleton";
-  export { Contract, ActionWrapper, Table, InlineAction } from "as-chain/assembly/helpers";
-  export { getSender, readActionData, unpackActionData, actionDataSize, requireRecipient, requireAuth, hasAuth, requireAuth2, isAccount, publicationTime, currentReceiver } from "as-chain/assembly/action";
-  export { Name, nameToSuffix } from "as-chain/assembly/name";
-  export { Action, PermissionLevel } from "as-chain/assembly/action";
-  export { Asset, ExtendedAsset, Symbol, ExtendedSymbol, isValid } from "as-chain/assembly/asset";
-  export { sendDeferred, cancelDeferred, readTransaction, transactionSize, taposBlockNum, taposBlockPrefix, transactionExpiration, getAction, getContextFreeData, TransactionExtension, Transaction, } from "as-chain/assembly/transaction";
-  export { PublicKey, Signature, Checksum160, Checksum256, Checksum512, recoverKey, assertRecoverKey, assertSha256, assertSha1, assertSha512, assertRipemd160, sha256, sha1, sha512, ripemd160, } from "as-chain/assembly/crypto";
-  export * from "as-chain/assembly/serializer";
-  export { Utils } from "as-chain/assembly/utils";
+declare module 'proton-tsc/assembly/index' {
+  export { U128, U256 } from "proton-tsc/assembly/bignum";
+  export { Float128 } from "proton-tsc/assembly/float128";
+  export { VarInt32, VarUint32, calcPackedVarUint32Length } from "proton-tsc/assembly/varint";
+  export { DBI64, PrimaryIterator, UNKNOWN_PRIMARY_KEY } from "proton-tsc/assembly/dbi64";
+  export { IDX64 } from "proton-tsc/assembly/idx64";
+  export { IDXF64 } from "proton-tsc/assembly/idxf64";
+  export { IDXF128 } from "proton-tsc/assembly/idxf128";
+  export { IDX128 } from "proton-tsc/assembly/idx128";
+  export { IDX256 } from "proton-tsc/assembly/idx256";
+  export { VariantValue } from "proton-tsc/assembly/variant";
+  export { assert, check, currentTimePoint, currentTime, currentTimeMs, currentTimeSec, } from "proton-tsc/assembly/system";
+  export { Microseconds, TimePoint, TimePointSec, BlockTimestamp } from "proton-tsc/assembly/time";
+  export { prints, printui, print, printString, printArray, printHex, printi, printI128, printU128, printsf, printdf, printqf, printn, } from "proton-tsc/assembly/debug";
+  export { IDXDB, SecondaryType, SecondaryValue, SecondaryIterator, newSecondaryValue_u64, newSecondaryValue_U128, newSecondaryValue_U256, newSecondaryValue_f64, newSecondaryValue_Float128, getSecondaryValue_u64, getSecondaryValue_U128, getSecondaryValue_U256, getSecondaryValue_f64, getSecondaryValue_Float128, } from "proton-tsc/assembly/idxdb";
+  export { MultiIndex, MultiIndexValue, SAME_PAYER } from "proton-tsc/assembly/mi";
+  export { Singleton } from "proton-tsc/assembly/singleton";
+  export { Contract, ActionWrapper, Table, InlineAction } from "proton-tsc/assembly/helpers";
+  export { getSender, readActionData, unpackActionData, actionDataSize, requireRecipient, requireAuth, hasAuth, requireAuth2, isAccount, publicationTime, currentReceiver } from "proton-tsc/assembly/action";
+  export { Name, nameToSuffix } from "proton-tsc/assembly/name";
+  export { Action, PermissionLevel } from "proton-tsc/assembly/action";
+  export { Asset, ExtendedAsset, Symbol, ExtendedSymbol, isValid } from "proton-tsc/assembly/asset";
+  export { sendDeferred, cancelDeferred, readTransaction, transactionSize, taposBlockNum, taposBlockPrefix, transactionExpiration, getAction, getContextFreeData, TransactionExtension, Transaction, } from "proton-tsc/assembly/transaction";
+  export { PublicKey, Signature, Checksum160, Checksum256, Checksum512, recoverKey, assertRecoverKey, assertSha256, assertSha1, assertSha512, assertRipemd160, sha256, sha1, sha512, ripemd160, } from "proton-tsc/assembly/crypto";
+  export * from "proton-tsc/assembly/serializer";
+  export { Utils } from "proton-tsc/assembly/utils";
 
 }
-declare module 'as-chain/assembly/mi' {
+declare module 'proton-tsc/assembly/mi' {
   /// <reference types="assembly" />
-  import { IDXDB, SecondaryValue, SecondaryIterator } from "as-chain/assembly/idxdb";
-  import { DBI64, PrimaryIterator, PrimaryValue } from "as-chain/assembly/dbi64";
-  import { Name } from "as-chain/assembly/name";
+  import { IDXDB, SecondaryValue, SecondaryIterator } from "proton-tsc/assembly/idxdb";
+  import { DBI64, PrimaryIterator, PrimaryValue } from "proton-tsc/assembly/dbi64";
+  import { Name } from "proton-tsc/assembly/name";
   export const SAME_PAYER: Name;
   export interface MultiIndexValue extends PrimaryValue {
       getSecondaryValue(index: usize): SecondaryValue;
@@ -727,9 +727,9 @@ declare module 'as-chain/assembly/mi' {
   }
 
 }
-declare module 'as-chain/assembly/name' {
+declare module 'proton-tsc/assembly/name' {
   /// <reference types="assembly" />
-  import { Packer } from "as-chain/assembly/serializer";
+  import { Packer } from "proton-tsc/assembly/serializer";
   export function S2N(s: string): u64;
   export function N2S(value: u64): string;
   export class Name implements Packer {
@@ -751,9 +751,9 @@ declare module 'as-chain/assembly/name' {
   export function nameToSuffix(name: Name): Name;
 
 }
-declare module 'as-chain/assembly/serializer' {
+declare module 'proton-tsc/assembly/serializer' {
   /// <reference types="assembly" />
-  import { Name } from "as-chain/assembly/name";
+  import { Name } from "proton-tsc/assembly/name";
   export interface Packer {
       pack(): u8[];
       unpack(data: u8[]): usize;
@@ -795,10 +795,10 @@ declare module 'as-chain/assembly/serializer' {
   }
 
 }
-declare module 'as-chain/assembly/singleton' {
+declare module 'proton-tsc/assembly/singleton' {
   /// <reference types="assembly" />
-  import { MultiIndex, MultiIndexValue } from "as-chain/assembly/mi";
-  import { Name } from "as-chain/assembly/name";
+  import { MultiIndex, MultiIndexValue } from "proton-tsc/assembly/mi";
+  import { Name } from "proton-tsc/assembly/name";
   export class Singleton<T extends MultiIndexValue> {
       key: u64;
       mi: MultiIndex<T>;
@@ -810,9 +810,9 @@ declare module 'as-chain/assembly/singleton' {
   }
 
 }
-declare module 'as-chain/assembly/system' {
+declare module 'proton-tsc/assembly/system' {
   /// <reference types="assembly" />
-  import { TimePoint } from "as-chain/assembly/time";
+  import { TimePoint } from "proton-tsc/assembly/time";
   export function assert(test: bool, msg: string): void;
   export function check(test: bool, msg: string): void;
   export function currentTimePoint(): TimePoint;
@@ -821,9 +821,9 @@ declare module 'as-chain/assembly/system' {
   export function currentTimeSec(): u32;
 
 }
-declare module 'as-chain/assembly/time' {
+declare module 'proton-tsc/assembly/time' {
   /// <reference types="assembly" />
-  import { Packer } from "as-chain/assembly/serializer";
+  import { Packer } from "proton-tsc/assembly/serializer";
   export class Microseconds implements Packer {
       _count: i64;
       constructor(_count?: i64);
@@ -921,14 +921,14 @@ declare module 'as-chain/assembly/time' {
   }
 
 }
-declare module 'as-chain/assembly/transaction' {
+declare module 'proton-tsc/assembly/transaction' {
   /// <reference types="assembly" />
-  import { U128 } from "as-chain/assembly/bignum";
-  import { VarUint32 } from "as-chain/assembly/varint";
-  import { TimePointSec } from "as-chain/assembly/time";
-  import { Action } from "as-chain/assembly/action";
-  import { Packer } from "as-chain/assembly/serializer";
-  import { Name } from "as-chain/assembly/name";
+  import { U128 } from "proton-tsc/assembly/bignum";
+  import { VarUint32 } from "proton-tsc/assembly/varint";
+  import { TimePointSec } from "proton-tsc/assembly/time";
+  import { Action } from "proton-tsc/assembly/action";
+  import { Packer } from "proton-tsc/assembly/serializer";
+  import { Name } from "proton-tsc/assembly/name";
   export function sendDeferred(sender_id: U128, payer: Name, serialized_transaction: u8[], replace_existing: bool): void;
   export function cancelDeferred(sender_id: U128): i32;
   export function readTransaction(buffer: u8[]): usize;
@@ -966,7 +966,7 @@ declare module 'as-chain/assembly/transaction' {
   }
 
 }
-declare module 'as-chain/assembly/utils' {
+declare module 'proton-tsc/assembly/utils' {
   /// <reference types="assembly" />
   export namespace Utils {
       function getDataStart<T>(arr: Array<T>): usize;
@@ -979,16 +979,16 @@ declare module 'as-chain/assembly/utils' {
   }
 
 }
-declare module 'as-chain/assembly/variant' {
+declare module 'proton-tsc/assembly/variant' {
   export class VariantValue<T> {
       value: T;
       constructor(value: T);
   }
 
 }
-declare module 'as-chain/assembly/varint' {
+declare module 'proton-tsc/assembly/varint' {
   /// <reference types="assembly" />
-  import { Packer } from "as-chain/assembly/serializer";
+  import { Packer } from "proton-tsc/assembly/serializer";
   export function calcPackedVarUint32Length(val: u32): usize;
   export class VarInt32 implements Packer {
       pack(): u8[];
@@ -1023,8 +1023,8 @@ declare function packer(_?: any): any
 declare function optional(_?: any): any
 declare function binaryextension(_?: any): any
 
-declare module 'as-chain' {
-    import main = require('as-chain/assembly/index');
+declare module 'proton-tsc' {
+    import main = require('proton-tsc/assembly/index');
     export = main;
 }
 
