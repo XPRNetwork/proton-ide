@@ -22,7 +22,6 @@ class AccountKV extends Table {
         return this.account.N;
     }
 
-
     static getTable(code: Name): TableStore<AccountKV> {
       return new TableStore<AccountKV>(code, code, Name.fromString("kvs"));
     }
