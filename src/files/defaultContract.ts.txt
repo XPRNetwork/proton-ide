@@ -1,4 +1,4 @@
-import { Name, Table, MultiIndex, Contract, check, requireAuth } from 'proton-tsc'
+import { Name, Table, TableStore, Contract, check, requireAuth } from 'proton-tsc'
 
 @packer
 class KV {
@@ -9,7 +9,7 @@ class KV {
 }
 
 @table("kvs")
-class AccountKVTable extends Table {
+class AccountKV extends Table {
     constructor (
         public account: Name = new Name(),
         public values: KV[] = [],
@@ -21,12 +21,16 @@ class AccountKVTable extends Table {
     get primary(): u64 {
         return this.account.N;
     }
+
+
+    static getTable(code: Name): TableStore<AccountKV> {
+      return new TableStore<AccountKV>(code, code, Name.fromString("kvs"));
+    }
 }
-class AccountKV extends AccountKVTable {}
 
 @contract
 class KvContract extends Contract {
-    kvsTable: MultiIndex<AccountKV> = new MultiIndex<AccountKV>(this.receiver, this.receiver, Name.fromString("kvs"))
+    kvsTable: TableStore<AccountKV> = AccountKV.getTable(this.receiver)
 
     @action("updatevalues")
     updatevalues(
@@ -44,7 +48,7 @@ class KvContract extends Contract {
         }
 
         // Find account
-        let kv = this.kvsTable.getByKey(actor.N)
+        let kv = this.kvsTable.get(actor.N)
         if (kv == null) {
             kv = new AccountKV(actor, values)
         } else {
@@ -72,8 +76,7 @@ class KvContract extends Contract {
         requireAuth(actor)
 
         // Find account
-        const kvItr = this.kvsTable.requireFind(actor.N, `no kv found with name ${actor}`)
-        const kv = this.kvsTable.get(kvItr)
+        const kv = this.kvsTable.requireGet(actor.N, `no kv found with name ${actor}`)
 
         // Update
         let filteredValues: KV[] = []
@@ -86,9 +89,9 @@ class KvContract extends Contract {
 
         // Save
         if (kv.values.length > 0) {
-            this.kvsTable.update(kvItr, kv, actor)
+            this.kvsTable.update(kv, actor)
         } else {
-            this.kvsTable.remove(kvItr)
+            this.kvsTable.remove(kv)
         }
     }
 }
